@@ -12,6 +12,11 @@
     "@tensorflow/tfjs": "^0.15.1",
     "@tensorflow/tfjs-vis": "^0.4.2",
     "amqplib": "^0.5.3",
+    "blob": "^0.0.5",
+    "form-data": "^2.3.3",
+    "node-fetch": "^2.3.0",
+    "redis": "^2.8.0",
+    "request": "^2.88.0",
     "websocket": "^1.0.28"
   },
   "scripts": {
