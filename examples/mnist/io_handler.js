@@ -29,18 +29,17 @@ class WebdisRequest {
   async load(){ 
     let self = this; 
     return new Promise(function(resolve, reject) {
-	    request.get(self.path, function(err, res, body) {
-		let jsonBody = JSON.parse(body);        
-		jsonBody = JSON.parse(jsonBody.GET);                
-		let modelTopology = jsonBody[0];
-		let weightData = str2ab(jsonBody[1]);
-		let weightSpecs = jsonBody[2];
-		//console.log(modelTopology);
-		//console.log(weightData);
-		//console.log(weightSpecs);        
-		resolve({modelTopology, weightSpecs, weightData}); 
-	      }
-	    );	
+      request.get(self.path, function(err, res, body) {
+        let jsonBody = JSON.parse(body);
+        jsonBody = JSON.parse(jsonBody.GET);                
+        let modelTopology = jsonBody[0];
+        let weightData = str2ab(jsonBody[1]);
+        let weightSpecs = jsonBody[2];
+        //console.log(modelTopology);
+        //console.log(weightData);
+        //console.log(weightSpecs);        
+        resolve({modelTopology, weightSpecs, weightData}); 
+      });	
     });	
   }
 }

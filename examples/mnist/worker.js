@@ -3,6 +3,7 @@ import * as sjs from './sockjs.min.js';
 import * as tf from '@tensorflow/tfjs';
 import {MnistData} from './data';
 import * as ioh from './io_handler';
+import * as cm from './custom_model';
 
 
 /***********************************************************************/
@@ -23,6 +24,7 @@ let connStr = 'http://' + url + ':' + port + '/stomp';
 console.log(connStr);
 /***********************************************************************/
 
+
 // Optimizer
 const LEARNING_RATE = .1;
 
@@ -34,31 +36,11 @@ const IMAGE_H = 28;
 const IMAGE_W = 28;
 
 
-
-let ws = new SockJS(connStr);
-let client = wsp.Stomp.over(ws);
-let on_connect = function() {
-  let sub = client.subscribe(origin, function(message) {
-    // console.log(message); 
-    //... unsubscribe from the destination
-    //sub.unsubscribe();
-    //... and disconnect from the server
-    //client.disconnect();   
-    procMessage(message.body);
-  });
-};
-let on_error =  function() {
-    console.log('Error connecting to ' + connStr);
-};
-
-// Loss function
-function loss(labels, ys) {
-  return tf.losses.softmaxCrossEntropy(labels, ys).mean();
-} 
-
 async function loadModel(url) {
-  return await tf.loadModel(ioh.webdisRequest(url)).catch(error => console.log(error));
+  return cm.loadCustomModel(ioh.webdisRequest(url));
+  // return await tf.loadModel(ioh.webdisRequest(url)).catch(error => console.log(error));
 }
+
 
 async function runMapper(decodedMsg) {
   console.log("Mapping");
@@ -66,33 +48,39 @@ async function runMapper(decodedMsg) {
   data = new MnistData();
   await data.load();
   let model = await loadModel(decodedMsg.getModelUrl);
-  model.summary();
-  
+  model.summary();   
   const optimizer = tf.train.sgd(LEARNING_RATE);
-  model.compile({optimizer: optimizer, loss: 'categoricalCrossentropy', metrics: ['accuracy']});
-  model.myTrainFunction = async (x,y) => {    
-    console.log("Nueva funcionalidad");
-    const totalLossFunction = () => {    
-      const batch = data.getTrainDataStep(MINI_BATCH_SIZE, decodedMsg.batchStep);
-      return loss(batch.labels, model.predict(batch.xs));
-    }
-    model.optimizer.minimize(totalLossFunction, true );
-  }
+  model.compile({optimizer: optimizer, loss: 'categoricalCrossentropy', metrics: ['accuracy']});  
   const batch = data.getTrainDataStep(MINI_BATCH_SIZE, decodedMsg.batchStep);
-  model.myTrainFunction(batch.xs, batch.labels);
-  /*const {value, grads} = optimizer.computeGradients(() => {    
-    const batch = data.getTrainDataStep(MINI_BATCH_SIZE, decodedMsg.batchStep);
-    return loss(batch.labels, model.predict(batch.xs));
-  } );
-  client.send(destination, {}, JSON.stringify(grads));
-  console.log(decodedMsd.procId + " ended");*/
+  // Alternativa 1
+  const {value, grads} = model.getGradientsAndSaveActions(batch.xs, batch.labels);
+  // Alternativa 2
+  // const {value, grads} = await model.getGradsOnBatch(batch.xs, batch.labels);
+  console.log("Value=" + value);
+  console.log("Grads=" + JSON.stringify(grads));
+  //client.send(destination, {}, JSON.stringify(grads));  
+  console.log(decodedMsg.procId + " ended");
 }
 
 async function runReducer(decodedMsg) {
   console.log("Reducing");
-  
+  //TODO: implement reducer 
 }
 
+
+/***********************************************************************/
+
+
+let ws = new SockJS(connStr);
+let client = wsp.Stomp.over(ws);
+let on_connect = function() {
+  let sub = client.subscribe(origin, function(message) {
+    procMessage(message.body);
+  });
+};
+let on_error =  function() {
+    console.log('Error connecting to ' + connStr);
+};
 
 async function procMessage(msg) {
   const decoded = JSON.parse(msg); 
