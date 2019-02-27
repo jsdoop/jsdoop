@@ -15,6 +15,7 @@ var ioh = require('./io_handler.js');
 /*********************************************************************************************************************/
 const IMAGE_H = 28;
 const IMAGE_W = 28;
+const conv = false;
 
 function createConvModel() {
   const model = tf.sequential();
@@ -34,8 +35,21 @@ function createConvModel() {
   return model;
 }
 
+function createDenseModel() {
+  const model = tf.sequential();
+  model.add(tf.layers.flatten({inputShape: [IMAGE_H, IMAGE_W, 1]}));
+  model.add(tf.layers.dense({units: 42, activation: 'relu'}));
+  model.add(tf.layers.dense({units: 10, activation: 'softmax'}));
+  return model;
+}
+
 async function setInitialModel(url) {
-  let model = createConvModel();
+  let model;
+  if( conv ) {
+    model = createConvModel();
+  } else {
+    model = createDenseModel();
+  }
   const saveResults = await model.save(ioh.webdisRequest(url)).catch(error => console.log(error));
 }
 
