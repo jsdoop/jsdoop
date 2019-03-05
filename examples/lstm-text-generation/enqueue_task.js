@@ -7,6 +7,7 @@
 
 const wde = require('web-dist-edge');
 const tf = require('@tensorflow/tfjs');
+const data = require('./data.js');
 
 
 /*********************************************************************************************************************/
@@ -27,50 +28,20 @@ if(local) {
 
 
 /*********************************************************************************************************************/
-/* Parámetros de la tarea (i.e., node enqueue_task.js <taskName> <numMaps> <accumReduce>)
-/*   numMaps
-/*   accumReduce
+/* Obtenemos el texto de entrenamiento
 /*********************************************************************************************************************/
 
-let numMaps = parseInt(process.argv.slice(2)[0]);
-let accumReduce = parseInt(process.argv.slice(2)[1]);
-if(isNaN(numMaps) || numMaps == null) {
-  numMaps = 10;
-}
-if(isNaN(accumReduce) || accumReduce == null) {
-  accumReduce = 3;
-}
-if(accumReduce > numMaps) {
-  accumReduce = numMaps;
-}
-console.log("Name=" + taskName + ", numMaps=" + numMaps + ", accumReduce=" + accumReduce);
+//TODO batchSize, sampleLen y sampleStep debieran ser configurables
+const batchSize = 32;
+const sampleLen = 1024;
+const sampleStep = 256;
 
+//TODO cargar el texto
+const textString = "";
 
-/*********************************************************************************************************************/
-/* Generación del payload específico para los mappers
-/*********************************************************************************************************************/
+const dataset = new data.TextDataset(textString, sampleLen, sampleStep);
 
-mapPayloadFn = function(ix, mapIx, reduceIx) {
-  let payload = {}
-  payload.getModelUrl = modelUrl + "/GET/" + taskName +"_model_id_" + reduceIx;
-  payload.batchStep = ix;
-  return payload;
-}
-
-reducePayloadFn = function(ix, mapIx, reduceIx) {
-  let payload = {}
-  payload.getModelUrl = modelUrl + "/GET/" + taskName +"_model_id_" + reduceIx;
-  let setId = reduceIx + 1;
-  payload.putModelUrl = modelUrl + "/SET/" + taskName +"_model_id_" + setId;
-  return payload;
-}
-
-
-/*********************************************************************************************************************/
-/* Encolamos las tareas
-/*********************************************************************************************************************/
-
-wde.enqueueTask(connStr, queueName, numMaps, accumReduce, mapPayloadFn, reducePayloadFn);
+const charSetSize = dataset.charSetSize;
 
 
 /*********************************************************************************************************************/
@@ -78,9 +49,6 @@ wde.enqueueTask(connStr, queueName, numMaps, accumReduce, mapPayloadFn, reducePa
 /*********************************************************************************************************************/
 
 const lstmLayerSizes = [10,10];
-//TODO get this parameters from the data
-const sampleLen = 1024;
-const charSetSize = 128;
 
 function createModel(lstmLayerSizes, sampleLen, charSetSize) {
   if (!Array.isArray(lstmLayerSizes)) {
@@ -105,3 +73,49 @@ async function setInitialModel(url, lstmLayerSizes, sampleLen, charSetSize) {
 }
 
 setInitialModel(modelUrl + "/SET/" + taskName +"_model_id_" + 1, lstmLayerSizes, sampleLen, charSetSize);
+
+
+/*********************************************************************************************************************/
+/* Generación del payload específico para los mappers
+/*********************************************************************************************************************/
+
+mapPayloadFn = function(ix, mapIx, reduceIx) {
+  let payload = {}
+  payload.getModelUrl = modelUrl + "/GET/" + taskName +"_model_id_" + reduceIx;
+  const [xs, ys] = dataset.nextDataBatch(batchSize);
+  //TODO copy the tensor or put the text...
+  payload.xs = xs;
+  payload.ys = ys;
+  return payload;
+}
+
+reducePayloadFn = function(ix, mapIx, reduceIx) {
+  let payload = {}
+  payload.getModelUrl = modelUrl + "/GET/" + taskName +"_model_id_" + reduceIx;
+  let setId = reduceIx + 1;
+  payload.putModelUrl = modelUrl + "/SET/" + taskName +"_model_id_" + setId;
+  return payload;
+}
+
+
+/*********************************************************************************************************************/
+/* Parámetros de la tarea (i.e., node enqueue_task.js <taskName> <numMaps> <accumReduce>)
+/*   numMaps
+/*   accumReduce
+/*********************************************************************************************************************/
+
+let numMaps = parseInt(process.argv.slice(2)[0]);
+let accumReduce = parseInt(process.argv.slice(2)[1]);
+if(isNaN(numMaps) || numMaps == null) {
+  numMaps = 10;
+}
+if(isNaN(accumReduce) || accumReduce == null) {
+  accumReduce = 3;
+}
+if(accumReduce > numMaps) {
+  accumReduce = numMaps;
+}
+console.log("Name=" + taskName + ", numMaps=" + numMaps + ", accumReduce=" + accumReduce);
+
+// Finalmente encolamos las tareas
+wde.enqueueTask(connStr, queueName, numMaps, accumReduce, mapPayloadFn, reducePayloadFn);
