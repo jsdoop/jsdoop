@@ -8,7 +8,6 @@ const request = require('request');
 * Generates an AMQP connection string
 */
 function getAmqpConnectionStr(serverUrl, port=null, user=null, pswd=null) {
-	console.log("example");
   let connStr = 'amqp://';
   if(user != null && pswd != null) {
     connStr = connStr + user + ':' + pswd + '@';
