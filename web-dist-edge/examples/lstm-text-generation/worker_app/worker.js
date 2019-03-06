@@ -1,4 +1,4 @@
-var wde = require('web-dist-edge');
+var wde = require('web-dist-edge-worker');
 
 
 /*********************************************************************************************************************/
@@ -6,7 +6,7 @@ var wde = require('web-dist-edge');
 /* TODO: sacar de aquí
 /*********************************************************************************************************************/
 
-const local = false;
+const local = true;
 const taskName = 'lstm_text_generation';
 const queueName = taskName + '_queue';
 let serverUrl;
@@ -15,6 +15,8 @@ let user = 'worker';
 let pswd = 'mypassword';
 if(local) {
   serverUrl = 'localhost';
+  user = 'guest';
+  pswd = 'guest';
 } else {
   serverUrl = 'mallba3.lcc.uma.es';
 }

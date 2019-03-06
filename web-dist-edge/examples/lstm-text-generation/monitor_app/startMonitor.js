@@ -5,7 +5,11 @@
 * Encola una serie de tareas de cálculo de gradiente y cómputo de un nuevo modelo.
 *********************************************************************************************************************/
 
-const wde = require('web-dist-edge');
+
+const tfjsIOHandler = require('./tsjsIOHandler.js');
+
+
+const wde = require('web-dist-edge-monitor');
 const tf = require('@tensorflow/tfjs');
 const data = require('./data.js');
 
@@ -15,14 +19,20 @@ const data = require('./data.js');
 /*********************************************************************************************************************/
 
 //TODO poner esto en un fichero de configuración
-const local = false;
+const local = true;
 const taskName = 'lstm_text_generation';
 const queueName = taskName + '_queue';
+let amqpConnOptions = {};
 if(local) {
-  connStr = wde.getAmqpConnectionStr('localhost');
-  modelUrl = 'localhost:7379';
+  //connStr = wde.getAmqpConnectionStr('localhost');
+  amqpConnOptions.server = 'localhost';
+  modelUrl = 'http://localhost:7379';
 } else {
-  connStr = wde.getAmqpConnectionStr('mallba3.lcc.uma.es', port=null, user='worker', pswd='mypassword');
+  //connStr = wde.getAmqpConnectionStr('mallba3.lcc.uma.es', port=null, user='worker', pswd='mypassword');
+  amqpConnOptions.server = 'mallba3.lcc.uma.es';
+  amqpConnOptions.port = null;
+  amqpConnOptions.user = 'worker';
+  amqpConnOptions.pswd = 'mypassword';
   modelUrl = 'http://mallba3.lcc.uma.es:7379';
 }
 
@@ -37,7 +47,8 @@ const sampleLen = 1024;
 const sampleStep = 256;
 
 //TODO cargar el texto
-const textString = "";
+const textString = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.";
+
 
 const dataset = new data.TextDataset(textString, sampleLen, sampleStep);
 
@@ -69,7 +80,7 @@ function createModel(lstmLayerSizes, sampleLen, charSetSize) {
 
 async function setInitialModel(url, lstmLayerSizes, sampleLen, charSetSize) {
   let model = createModel(lstmLayerSizes, sampleLen, charSetSize);
-  const saveResults = await model.save(wde.webdisRequest(url)).catch(error => console.log(error));
+  const saveResults = await model.save(tfjsIOHandler.webdisRequest(url)).catch(error => console.log(error));
 }
 
 setInitialModel(modelUrl + "/SET/" + taskName +"_model_id_" + 1, lstmLayerSizes, sampleLen, charSetSize);
@@ -84,8 +95,8 @@ mapPayloadFn = function(ix, mapIx, reduceIx) {
   payload.getModelUrl = modelUrl + "/GET/" + taskName +"_model_id_" + reduceIx;
   const [xs, ys] = dataset.nextDataBatch(batchSize);
   //TODO copy the tensor or put the text...
-  payload.xs = xs;
-  payload.ys = ys;
+  payload.xs = xs.arraySync();
+  payload.ys = ys.arraySync();
   return payload;
 }
 
@@ -118,4 +129,20 @@ if(accumReduce > numMaps) {
 console.log("Name=" + taskName + ", numMaps=" + numMaps + ", accumReduce=" + accumReduce);
 
 // Finalmente encolamos las tareas
-wde.enqueueTask(connStr, queueName, numMaps, accumReduce, mapPayloadFn, reducePayloadFn);
+//wde.enqueueTask(amqpConnOptions, queueName, numMaps, accumReduce, mapPayloadFn, reducePayloadFn);
+let conn, ch;
+
+(async () => {
+	[conn, ch] = await wde.wdeConnect(amqpConnOptions);
+	await wde.enqueueTask(ch, queueName, numMaps, accumReduce, mapPayloadFn, reducePayloadFn);
+	//ch.close();
+	//conn.close();
+	setTimeout(function(){ch.close(); conn.close(); console.log("DISCONNECTED CORRECTLY"); process.exit(0);},500);
+})();
+
+
+
+
+
+
+
