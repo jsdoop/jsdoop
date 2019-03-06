@@ -17,6 +17,8 @@
     "@tensorflow/tfjs": "^0.15.3",
     "protocol-buffers": "^4.1.0",
     "stomp": "^0.1.1",
-    "web-dist-edge": "file:../../web-dist-edge/"
+    "request": "^2.88.0",
+    "web-dist-edge-monitor": "file:../../../wde_monitor/",
+    "web-dist-edge-utils": "file:../../../wde_utils/"
   }
 }
