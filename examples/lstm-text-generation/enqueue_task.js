@@ -15,7 +15,7 @@ const data = require('./data.js');
 /*********************************************************************************************************************/
 
 //TODO poner esto en un fichero de configuración
-const local = false;
+const local = true;
 const taskName = 'lstm_text_generation';
 const queueName = taskName + '_queue';
 if(local) {
@@ -37,7 +37,8 @@ const sampleLen = 1024;
 const sampleStep = 256;
 
 //TODO cargar el texto
-const textString = "";
+const textString = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.";
+
 
 const dataset = new data.TextDataset(textString, sampleLen, sampleStep);
 
@@ -84,8 +85,8 @@ mapPayloadFn = function(ix, mapIx, reduceIx) {
   payload.getModelUrl = modelUrl + "/GET/" + taskName +"_model_id_" + reduceIx;
   const [xs, ys] = dataset.nextDataBatch(batchSize);
   //TODO copy the tensor or put the text...
-  payload.xs = xs;
-  payload.ys = ys;
+  payload.xs = xs.arraySync();
+  payload.ys = ys.arraySync();
   return payload;
 }
 
