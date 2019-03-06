@@ -10,6 +10,7 @@
     "request": "^2.88.0",
     "sockjs": "^0.3.19",
     "sockjs-client": "^1.3.0",
-    "tensorflow": "^0.7.0"
+    "@tensorflow/tfjs": "^0.15.1",
+    "@tensorflow/tfjs-vis": "^0.4.2"
   }
 }
