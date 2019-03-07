@@ -6,12 +6,15 @@
 *********************************************************************************************************************/
 
 
-const tfjsIOHandler = require('./tsjsIOHandler.js');
+//const tfjsIOHandler = require('./tsjsIOHandler.js');
+//const data = require('./data.js');
+const {tf, tfjsIOHandler, data} = require('tfjs-helper');
+
 
 
 const wde = require('web-dist-edge-monitor');
-const tf = require('@tensorflow/tfjs');
-const data = require('./data.js');
+//const tf = require('@tensorflow/tfjs');
+
 
 
 /*********************************************************************************************************************/
