@@ -7,7 +7,8 @@
     "node": ">=8.9.0"
   },
   "dependencies": {
-    "web-dist-edge-monitor": "file:../../../wde_monitor/",
-    "tfjs-helper": "file:../tfjs_helper/"
+    "request": "^2.88.0",
+    "tfjs-helper": "file:../tfjs_helper/",
+    "web-dist-edge-monitor": "file:../../../wde_monitor/"
   }
 }
