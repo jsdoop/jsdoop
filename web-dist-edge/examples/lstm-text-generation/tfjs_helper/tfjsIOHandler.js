@@ -4,7 +4,6 @@ const wdeUtils = require('web-dist-edge-utils');
 
 /**
 * JS Tensorflow IOHandler implementation to get a model from a webdis server
-* TODO: move the class and the function to a different file
 */
 class WebdisRequest {   
   constructor(path) {
