@@ -3,8 +3,7 @@ const tf = require('@tensorflow/tfjs');
 /**
 *
 */
-async function createLstmModel(lstmLayerSizes, sampleLen, charSetSize) {
-  let learningRate = 0.1;
+async function createLstmModel(lstmLayerSizes, sampleLen, charSetSize, learningRate = 0.1) {
   if (!Array.isArray(lstmLayerSizes)) {
     lstmLayerSizes = [lstmLayerSizes];
   }
@@ -18,8 +17,7 @@ async function createLstmModel(lstmLayerSizes, sampleLen, charSetSize) {
     }));
   }
   model.add(tf.layers.dense({units: charSetSize, activation: 'softmax'}));
-  const optimizer = tf.train.rmsprop(learningRate);
-  model.compile({optimizer: optimizer, loss: 'categoricalCrossentropy'});
+  model.summary();
   return model;
 }
 
@@ -32,6 +30,7 @@ module.exports.createLstmModel = createLstmModel;
 */
 tf.Model.prototype.getPredLabels = function (x) {
   return tf.tidy(() => {
+    // return this.model.predict(x, {batchSize: x.shape[0]});
     return this.model.predictOnBatch(x);
   });
 }
@@ -42,10 +41,13 @@ tf.Model.prototype.getGradientsAndSaveActions = function (x, y) {
   const f = () => { 
     return tf.tidy(() => {
       const labels = this.getPredLabels(x);
-      labels.dataSync();
+      // labels.dataSync();
       return tf.losses.softmaxCrossEntropy(y, labels).asScalar();
     });
   }
+/*  const {value, grads} = tf.variableGrads(f);
+  console.log(grads);
+  return {value, grads};*/
   return tf.variableGrads(f);
 }
 

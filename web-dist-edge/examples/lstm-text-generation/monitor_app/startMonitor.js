@@ -37,12 +37,12 @@ if(local) {
 /* Obtenemos el texto de entrenamiento
 /*********************************************************************************************************************/
 
-
 async function getText(url){
   // read text from URL location
   return new Promise(function(resolve, reject) {
     request.get(url, function(err, res, content) {
-      resolve(content); 
+      let jsonBody = JSON.parse(content);
+      resolve(jsonBody.GET);
     });	
   });	
 }
@@ -50,13 +50,16 @@ async function getText(url){
 
 (async () => {
   //TODO batchSize, sampleLen y sampleStep debieran ser configurables
-  const batchSize = 32;
-  const sampleLen = 1024;
-  const sampleStep = 256;
-  const textUrl = 'http://mallba3.lcc.uma.es/jamorell/deeplearning/dataset/el_quijote.txt'
-  const lstmLayerSizes = [10,10];
+  const batchSize = 5;
+  const sampleLen = 32; // 1024
+  const sampleStep = 8; // 256
+  // const textUrl = 'http://mallba3.lcc.uma.es/jamorell/deeplearning/dataset/el_quijote.txt'
+  const textUrl = modelUrl + '/GET/' + taskName + '_text';
+  const lstmLayerSizes = [10];
 
   const textString = await getText(textUrl);  
+  // request.put(modelUrl + '/SET/' + taskName + '_text').form(textString);
+  
   const dataset = new data.TextDataset(textString, sampleLen, sampleStep, false);
     
   let model = await tfjsCustomModel.createLstmModel(lstmLayerSizes, sampleLen, dataset.charSet.length);
@@ -69,6 +72,7 @@ async function getText(url){
     payload.getModelUrl = modelUrl + "/GET/" + taskName +"_model_id_" + reduceIx;    
     payload.beginIndex = dataset.getNextBeginIndex();
     payload.batchSize = batchSize;
+    payload.optimizer = 'rmsprop';
     return payload;
   }
   
