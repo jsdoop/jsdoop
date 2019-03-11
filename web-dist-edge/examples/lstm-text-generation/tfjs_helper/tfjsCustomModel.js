@@ -54,7 +54,7 @@ tf.Model.prototype.getGradientsAndSaveActions = function (x, y) {
 
 async function loadCustomModel(IOHandler) {
   //TODO validar que el modelo tiene la functión getGradientsAndSaveActions
-  return tf.loadModel(IOHandler).catch(error => console.log(error));
+  return tf.loadModel(IOHandler).catch(error => console.log("ERROR:" + error));
 }
 
 module.exports.loadCustomModel = loadCustomModel;

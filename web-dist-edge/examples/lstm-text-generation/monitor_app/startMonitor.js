@@ -15,21 +15,25 @@ const wde = require('web-dist-edge-monitor');
 /*********************************************************************************************************************/
 
 //TODO poner esto en un fichero de configuración
-const local = false;
+const local = true;
 const taskName = 'lstm_text_generation';
 const queueName = taskName + '_queue';
 let amqpConnOptions = {};
+let webdisPort = 3001; //7379
 if(local) {
   //connStr = wde.getAmqpConnectionStr('localhost');
   amqpConnOptions.server = 'localhost';
-  modelUrl = 'http://localhost:7379';
+  amqpConnOptions.port = null;
+  modelUrl = 'http://localhost:' + webdisPort;
+  amqpConnOptions.user = 'guest';
+  amqpConnOptions.pswd = 'guest';
 } else {
   //connStr = wde.getAmqpConnectionStr('mallba3.lcc.uma.es', port=null, user='worker', pswd='mypassword');
   amqpConnOptions.server = 'mallba3.lcc.uma.es';
   amqpConnOptions.port = null;
   amqpConnOptions.user = 'worker';
   amqpConnOptions.pswd = 'mypassword';
-  modelUrl = 'http://mallba3.lcc.uma.es:7379';
+  modelUrl = 'http://mallba3.lcc.uma.es:' + webdisPort;
 }
 
 
@@ -43,6 +47,7 @@ async function getText(url){
     request.get(url, function(err, res, content) {
       let jsonBody = JSON.parse(content);
       resolve(jsonBody.GET);
+	//resolve(content);
     });	
   });	
 }
@@ -58,6 +63,7 @@ async function getText(url){
   const lstmLayerSizes = [10];
 
   const textString = await getText(textUrl);  
+  console.log("textString = " + textString);
   // request.put(modelUrl + '/SET/' + taskName + '_text').form(textString);
   
   const dataset = new data.TextDataset(textString, sampleLen, sampleStep, false);
