@@ -25,8 +25,7 @@ class Worker {
     this.currentModel = null;
   }
 
-  sendToQueue(msg, queueName) {
-    //TODO poner el mensaje en la cola
+  sendToQueue(msg, queueName) 
     console.log("Mensaje '" + JSON.stringify(msg) + "' encolado en " + queueName);
     this.client.send(queueName, {priority: 9}, msg);
   }
@@ -74,10 +73,9 @@ class Worker {
   }
   start() {
     let onConnect = () => {
-      let sub = this.client.subscribe(this.queueName, async (message) => {
+      this.subscribe(this.queueName, async (message) => {
         await this.procMessage(message.body, this);
       });
-      this.queuesObjects[this.queueName] = sub;
     }
     let onError = () => {
       console.log("Error connecting to " + self.wsConnStr);
