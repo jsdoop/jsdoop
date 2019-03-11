@@ -1,6 +1,7 @@
 const wde = require('web-dist-edge-worker');
 const {tf, tfjsIOHandler, data, tfjsCustomModel} = require('tfjs-helper');
 
+
 /*********************************************************************************************************************/
 /* Parámetros de conexión
 /* TODO: sacar de aquí
@@ -28,14 +29,22 @@ let dataset;
 /*********************************************************************************************************************/
 
 async function mapFn(decodedMsg) {
+  //TODO revisar que el modelo exista y espere
   console.log("Mapping");  
+  // let model = await tfjsCustomModel.createLstmModel([5,5], 1024, dataset.charSet.length, learningRate = 0.1);
   let model = await tfjsCustomModel.loadCustomModel(tfjsIOHandler.webdisRequest(decodedMsg.payload.getModelUrl));
   model.summary();
+  //TODO learning rate?
+  // let optimizer = tf.train.rmsprop(0.1);
+  model.compile({optimizer: decodedMsg.payload.optimizer, loss: 'categoricalCrossentropy'});  
   const [xs, ys] = dataset.getDataBatch(decodedMsg.payload.batchSize, decodedMsg.payload.beginIndex);
-  const [value, grads] = model.getGradientsAndSaveActions(xs, ys);
+  //TODO pass the loss as a parameter
+  const {value, grads} = model.getGradientsAndSaveActions(xs, ys);
   result = {};
   result.value = value;
   result.grads = grads;
+  console.log(grads);
+  //TODO dispose!
   return result;
 }
 
@@ -56,25 +65,27 @@ async function reduceFn(decodedMsg) {
 /*********************************************************************************************************************/
 
 function getText(url){
-    // read text from URL location
+    // read text from URL locations
+  return new Promise(function(resolve, reject) {
     var request = new XMLHttpRequest();
     request.open('GET', url, true);
+    request.mode = 'no-cors';
+    request.overrideMimeType('text/json;');
     request.send(null);
     request.onreadystatechange = function () {
-        if (request.readyState === 4 && request.status === 200) {
-            var type = request.getResponseHeader('Content-Type');
-            if (type.indexOf("text") !== 1) {
-                return request.responseText;
-            }
-        }
+      if (request.readyState === 4 && request.status === 200) {
+        let jsonBody = JSON.parse(request.responseText);
+        resolve(jsonBody.GET);
+      }
     }
+  });
 }
 
 (async () => {
-  const sampleLen = 1024;
-  const sampleStep = 256;
-  const textUrl = 'http://mallba3.lcc.uma.es/jamorell/deeplearning/dataset/el_quijote.txt';
-  let textString = getText(url);
+  const sampleLen = 32; // 1024;
+  const sampleStep = 8; // 256;
+  const textUrl = 'http://' + serverUrl + ':7379/GET/' + taskName + '_text';
+  let textString = await getText(textUrl);
   
   dataset = new data.TextDataset(textString, sampleLen, sampleStep, false);
 
