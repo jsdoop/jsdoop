@@ -11,6 +11,7 @@ class Worker {
     this.mapFn = mapFn;
     this.reduceFn = reduceFn;
     this.wsConnStr = 'http://' + serverUrl + ':' + port + '/stomp';
+    console.log(">>>>> this.wsConnStr = " + this.wsConnStr);
     this.user = user;
     this.pswd = pswd;
     this.queueName = queueName;
@@ -18,22 +19,30 @@ class Worker {
     this.client = Stomp.over(ws);
     this.client.heartbeat.outgoing = 0;
     this.client.heartbeat.incoming = 0;
+
+    this.queuesObjects = {};
+    this.currentModelId = -1;
+    this.currentModel = null;
   }
 
   sendToQueue(msg, queueName) {
     //TODO poner el mensaje en la cola
     console.log("Mensaje '" + JSON.stringify(msg) + "' encolado en " + queueName);
+    this.client.send(queueName, {priority: 9}, msg);
   }
 
-  procMessage(msg, self) {
+  async procMessage(msg, self) {
+    console.log("msg received = " + msg);
     const decoded = JSON.parse(msg); 
     if( decoded.mapOrReduce == "map" ) {
       if(self.mapFn && typeof(self.mapFn) == 'function') {
-        let mapResult = self.mapFn(decoded);
+        let mapResult = await self.mapFn(decoded);
+	console.log("mapResult = " + mapResult);
         let msgResult = {}
         msgResult.procId = decoded.procId;
         msgResult.result = mapResult;
-        self.sendToQueue(msgResult, decoded.queueName + "_maps");
+	console.log("sendToQueue Map",msgResult, (decoded.queueName + "_maps"));
+        self.sendToQueue(JSON.stringify(msgResult), decoded.queueName + "_maps");
       } else {
         console.log("Map function not found");
       }
@@ -42,11 +51,11 @@ class Worker {
         //TODO gestionar la espera, i.e., ocultamos al usuario el
         // bloqueo a la espera de que las tareas en "await" hayan acabado,
         // e incluir los resultados de las tareas
-        let reduceResult = self.reduceFn(decoded);
+        let reduceResult = await self.reduceFn(decoded);
         let msgResult = {}
         msgResult.procId = decoded.procId;
         msgResult.result = reduceResult;
-        self.sendToQueue(msgResult, decoded.queueName + "_reduces");
+        self.sendToQueue(JSON.stringify(msgResult), decoded.queueName + "_reduces");
       } else {
         console.log("Reduce function not found");
       }
@@ -54,13 +63,21 @@ class Worker {
       console.log("Error, task corrupted");
     }  
   }
+  subscribe(queueName, callback) {
+      let queueObject = this.client.subscribe(queueName, callback);
+      this.queuesObjects[queueName] = queueObject;
+  }
 
+  unsubscribe(queueName) {
+	let queueObject = this.queuesObjects[queueName];
+	queueObject.unsubscribe();
+  }
   start() {
-    let self = this;
     let onConnect = () => {
-      let sub = this.client.subscribe(self.queueName, function(message) {
-        self.procMessage(message.body, self);
+      let sub = this.client.subscribe(this.queueName, async (message) => {
+        await this.procMessage(message.body, this);
       });
+      this.queuesObjects[this.queueName] = sub;
     }
     let onError = () => {
       console.log("Error connecting to " + self.wsConnStr);

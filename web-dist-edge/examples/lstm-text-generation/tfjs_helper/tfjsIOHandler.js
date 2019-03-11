@@ -20,12 +20,19 @@ class WebdisRequest {
     let self = this; 
     return new Promise(function(resolve, reject) {
       request.get(self.path, function(err, res, body) {
-        let jsonBody = JSON.parse(body);
-        jsonBody = JSON.parse(jsonBody.GET);                
-        let modelTopology = jsonBody[0];
-        let weightData = wdeUtils.str2ab(jsonBody[1]);
-        let weightSpecs = jsonBody[2];
-        resolve({modelTopology, weightSpecs, weightData}); 
+	if (body) {
+		//console.log("WebdisRequest.load() body = " + body);
+		let jsonBody = JSON.parse(body);
+		jsonBody = JSON.parse(jsonBody.GET);                
+		let modelTopology = jsonBody[0];
+		let weightData = wdeUtils.str2ab(jsonBody[1]);
+		let weightSpecs = jsonBody[2];
+		resolve({modelTopology, weightSpecs, weightData}); 
+	} else {
+		//console.log("WebdisRequest.load() body is empty");	
+		resolve(null);
+	}
+
       });	
     });	
   }
