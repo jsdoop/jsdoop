@@ -21,12 +21,13 @@ class TextDataset {
     this.sampleStep = sampleStep;
 
     if (wordSet) {
-      this.getWordSet(textString);
+      this.getWordSet(this.textString);
     } else {
-      this.getCharSet(textString);      
+      this.getCharSet(this.textString);      
     }
-    
+    this.batchIndex = 0;
   }
+
   //TODO -> Se pueden obtener los indices en un 2º metodo aunque para el ejemplo es
   //suficiente. Igual con exampleBeginIndices.
   getWordSet(textString) {
@@ -77,11 +78,11 @@ class TextDataset {
   }
 
 
-  getDataBatch(batchSize, batchIndex) {
+  getDataBatch(batchSize, beginIndex) {
     const xsBuffer = new tf.TensorBuffer([batchSize, this.sampleLen, this.charSet.length]);
     const ysBuffer  = new tf.TensorBuffer([batchSize, this.charSet.length]);
     for (let i = 0; i < batchSize; ++i) {
-      const beginIndex = this.exampleBeginIndices[batchIndex % this.exampleBeginIndices.length];
+      // const beginIndex = this.exampleBeginIndices[batchIndex % this.exampleBeginIndices.length];
       for (let j = 0; j < this.sampleLen; ++j) {
         xsBuffer.set(1, i, j, this.indices[beginIndex + j]);
       }
@@ -94,11 +95,15 @@ class TextDataset {
     return this.charSet[index];
   }
 
-  shuffleBeginIndices() {
-    // Randomly shuffle the beginning indices.
-    tf.util.shuffle(this.exampleBeginIndices);
+  getNextBeginIndex() {
+    if (this.batchIndex % this.exampleBeginIndices.length == 0) {
+      tf.util.shuffle(this.exampleBeginIndices);
+    }
+    const beginIndex = this.exampleBeginIndices[this.batchIndex % this.exampleBeginIndices.length];
+    this.batchIndex++;
+    return beginIndex;
   }
-  
+ 
 }
 
 module.exports.TextDataset = TextDataset;

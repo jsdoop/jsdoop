@@ -10,6 +10,9 @@
     "worker": "cross-env NODE_ENV=development parcel worker.html --no-hmr "
   },
   "devDependencies": {
+    "@babel/core": "^7.0.0-0",
+    "@babel/plugin-transform-runtime": "^7.1.0",
+    "babel-preset-env": "~1.6.1",
     "cross-env": "^5.2.0",
     "parcel-bundler": "~1.10.3"
   },
@@ -17,6 +20,7 @@
     "@tensorflow/tfjs": "^0.15.3",
     "protocol-buffers": "^4.1.0",
     "stomp": "^0.1.1",
+    "tfjs-helper": "file:../tfjs_helper/",
     "web-dist-edge-worker": "file:../../../wde_worker/"
   }
-}
+}    
