@@ -3,6 +3,7 @@ const Stomp = require('stompjs');
 const SockJS = require('sockjs-client');
 const request = require('request');
 
+
 /**
 * WORKER (JavaScript Client)
 */
@@ -25,8 +26,8 @@ class Worker {
     this.currentModel = null;
   }
 
-  sendToQueue(msg, queueName) 
-    console.log("Mensaje '" + JSON.stringify(msg) + "' encolado en " + queueName);
+  sendToQueue(msg, queueName) {
+    // console.log("Mensaje '" + JSON.stringify(msg).substring(0, 20) + "' encolado en " + queueName);
     this.client.send(queueName, {priority: 9}, msg);
   }
 
@@ -62,23 +63,28 @@ class Worker {
       console.log("Error, task corrupted");
     }  
   }
+
   subscribe(queueName, callback) {
-      let queueObject = this.client.subscribe(queueName, callback);
-      this.queuesObjects[queueName] = queueObject;
+    // prefetch-count limita el número de mensajes que se reciben de la cola. Sólo después
+    // de hacer ACK, se vuelve a recibir un mensaje
+    let queueObject = this.client.subscribe(queueName, callback, {ack: 'client', 'prefetch-count': 1});
+    this.queuesObjects[queueName] = queueObject;
   }
 
   unsubscribe(queueName) {
-	let queueObject = this.queuesObjects[queueName];
-	queueObject.unsubscribe();
+    let queueObject = this.queuesObjects[queueName];
+    queueObject.unsubscribe();
   }
+
   start() {
     let onConnect = () => {
       this.subscribe(this.queueName, async (message) => {
-        await this.procMessage(message.body, this);
+	await self.procMessage(message.body, this);
+        message.ack();
       });
     }
     let onError = () => {
-      console.log("Error connecting to " + self.wsConnStr);
+      console.log("Error connecting to " + this.wsConnStr);
     }
     this.client.connect(this.user, this.pswd, onConnect, onError, '/');
   }
