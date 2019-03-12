@@ -7,18 +7,19 @@ const {tf, tfjsIOHandler, data, tfjsCustomModel} = require('tfjs-helper');
 /* TODO: sacar de aquí
 /*********************************************************************************************************************/
 
-const local = true;
+const local = false;
 const taskName = 'lstm_text_generation';
 const queueName = taskName + '_queue';
 let serverUrl;
 let port = 15674;
 let user = 'worker';
 let pswd = 'mypassword';
-let webdisPort = 3001; //7379
+let webdisPort = 7379;
 if(local) {
   serverUrl = 'localhost';
   user = 'guest';
   pswd = 'guest';
+  webdisPort = 3001;
 } else {
   serverUrl = 'mallba3.lcc.uma.es';
 }
@@ -108,7 +109,7 @@ async function mapFn(decodedMsg) {
 async function reduceFn(decodedMsg) {
   //TODO -> Es posible que sea necesario procesar los mensajes de 1 en 1 para que no haya varios procesos en segundo plano llamando
   // a reduceFn y a mapFn al mismo tiempo.
-  console.log("Reducing");
+  console.log("Reducing");/*
   return new Promise((resolve, reject) => {
 	  console.log("Reducing (inside promise)");
 	  let totalReceived = 0;
@@ -132,7 +133,8 @@ async function reduceFn(decodedMsg) {
 	  });	
 	  //TODO: implement reducer
 	  //return "Dummy reduce";
-  });  
+  }); */ 
+  return "Dummy reduce";
 }
 
 
@@ -162,12 +164,12 @@ function getText(url){
   const sampleLen = 32; // 1024;
   const sampleStep = 8; // 256;
   const textUrl = 'http://' + serverUrl + ':' + webdisPort + '/GET/' + taskName + '_text';
-  console.log("loading text...");
+  // console.log("loading text...");
   let textString = await getText(textUrl);
-  console.log("textString = " + textString);
+  //console.log("textString = " + textString);
   
   dataset = new data.TextDataset(textString, sampleLen, sampleStep, false);
-    console.log("waiting tasks ...");
+  console.log("waiting tasks ...");
   let worker = new wde.Worker(serverUrl, port, queueName, user, pswd, mapFn, reduceFn);
   worker.start();
 })();

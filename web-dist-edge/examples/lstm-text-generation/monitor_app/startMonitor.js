@@ -15,11 +15,11 @@ const wde = require('web-dist-edge-monitor');
 /*********************************************************************************************************************/
 
 //TODO poner esto en un fichero de configuración
-const local = true;
+const local = false;
 const taskName = 'lstm_text_generation';
 const queueName = taskName + '_queue';
 let amqpConnOptions = {};
-let webdisPort = 3001; //7379
+let webdisPort = 7379;
 if(local) {
   //connStr = wde.getAmqpConnectionStr('localhost');
   amqpConnOptions.server = 'localhost';
@@ -27,6 +27,7 @@ if(local) {
   modelUrl = 'http://localhost:' + webdisPort;
   amqpConnOptions.user = 'guest';
   amqpConnOptions.pswd = 'guest';
+  webdisPort = 3001;
 } else {
   //connStr = wde.getAmqpConnectionStr('mallba3.lcc.uma.es', port=null, user='worker', pswd='mypassword');
   amqpConnOptions.server = 'mallba3.lcc.uma.es';
@@ -60,10 +61,10 @@ async function getText(url){
   const sampleStep = 8; // 256
   // const textUrl = 'http://mallba3.lcc.uma.es/jamorell/deeplearning/dataset/el_quijote.txt'
   const textUrl = modelUrl + '/GET/' + taskName + '_text';
-  const lstmLayerSizes = [10];
+  const lstmLayerSizes = [50,50];
 
   const textString = await getText(textUrl);  
-  console.log("textString = " + textString);
+  // console.log("textString = " + textString);
   // request.put(modelUrl + '/SET/' + taskName + '_text').form(textString);
   
   const dataset = new data.TextDataset(textString, sampleLen, sampleStep, false);
