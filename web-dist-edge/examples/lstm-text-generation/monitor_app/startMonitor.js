@@ -15,19 +15,19 @@ const wde = require('web-dist-edge-monitor');
 /*********************************************************************************************************************/
 
 //TODO poner esto en un fichero de configuración
-const local = false;
+const local = true;
 const taskName = 'lstm_text_generation';
 const queueName = taskName + '_queue';
 let amqpConnOptions = {};
 let webdisPort = 7379;
 if(local) {
   //connStr = wde.getAmqpConnectionStr('localhost');
+  webdisPort = 3001;
   amqpConnOptions.server = 'localhost';
   amqpConnOptions.port = null;
   modelUrl = 'http://localhost:' + webdisPort;
   amqpConnOptions.user = 'guest';
   amqpConnOptions.pswd = 'guest';
-  webdisPort = 3001;
 } else {
   //connStr = wde.getAmqpConnectionStr('mallba3.lcc.uma.es', port=null, user='worker', pswd='mypassword');
   amqpConnOptions.server = 'mallba3.lcc.uma.es';
@@ -72,6 +72,7 @@ async function getText(url){
   let model = await tfjsCustomModel.createLstmModel(lstmLayerSizes, sampleLen, dataset.charSet.length);
   let urlSavedModel = modelUrl + "/SET/" + taskName +"_model_id_" + 1;
   const saveResults = await model.save(tfjsIOHandler.webdisRequest(urlSavedModel)).catch(error => console.log(error));
+  request.put(urlSavedModel + '_ok').form("OK");
   
   // Generación del payload específico para los mappers
   mapPayloadFn = function(ix, mapIx, reduceIx) {
@@ -116,6 +117,7 @@ async function getText(url){
   let conn, ch;
   
   [conn, ch] = await wde.wdeConnect(amqpConnOptions);
+  //ch.prefetch(1); 
   await wde.enqueueTask(ch, queueName, numMaps, accumReduce, mapPayloadFn, reducePayloadFn);
   setTimeout(function(){ch.close(); conn.close(); console.log("DISCONNECTED CORRECTLY"); process.exit(0);},500);
 
