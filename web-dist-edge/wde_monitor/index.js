@@ -71,6 +71,7 @@ async function enqueueTask(ch, queueName, numMaps, accumReduce, mapPayloadFn=nul
         mapper.procId = "mapper_" + reduceIx + "_" + mapIx; // TODO: improve id
         mapper.mapOrReduce = "map";
         mapper.queueName = queueName;
+        mapper.reduceId = reduceIx;
         if(mapPayloadFn && typeof(mapPayloadFn) == 'function') {
           mapper.payload = mapPayloadFn(i, mapIx, reduceIx);
         }
@@ -83,6 +84,7 @@ async function enqueueTask(ch, queueName, numMaps, accumReduce, mapPayloadFn=nul
           reducer.mapOrReduce = "reduce";
           reducer.awaitId = awaitId;
           reducer.queueName = queueName;
+          reducer.reduceId = reduceIx;
           if(reducePayloadFn && typeof(reducePayloadFn) == 'function') {
             reducer.payload = reducePayloadFn(i, mapIx, reduceIx);
           }

@@ -13,6 +13,25 @@ var client = redis.createClient(port, host);
 client.on('connect', function() {
    	console.log('Redis client connected on '+webPort);
 
+
+    for (let i = 1; i <= 10; i++) {
+      client.del('lstm_text_generation_model_id_' + i, function(err, response) {
+         if (response == 1) {
+            console.log("Deleted Successfully! lstm_text_generation_model_id_" + i);
+         } else{
+          console.log("Cannot delete lstm_text_generation_model_id_" + i);
+         }
+      });
+      client.del('lstm_text_generation_model_id_' + i + '_ok', function(err, response) {
+         if (response == 1) {
+            console.log("Deleted Successfully! lstm_text_generation_model_id_" + i);
+         } else{
+          console.log("Cannot delete lstm_text_generation_model_id_" + i);
+         }
+      });
+    }
+
+
 	//Checking if the dataset exists. If they do not exist they are loaded.
 	client.get(taskTextUrl, function (error, result) {
 	    if (error) {
@@ -26,7 +45,7 @@ client.on('connect', function() {
 		  if (err) throw err;
 		  let myjson = {};
 		  myjson.GET = dataset;
-		  client.set(taskTextUrl, JSON.stringify(myjson), redis.print);
+		  client.set(taskTextUrl, JSON.stringify(myjson), redis.print)
 		});		
 	    } else {
 	    	console.log("Dataset found in redis.");
@@ -41,8 +60,8 @@ client.on('error', function (err) {
 const http = require('http');
 
 http.createServer((request, response) => {
-	console.log("request.headers.origin = " + request.headers.origin);
-	console.log("request = " + JSON.stringify(request.headers));
+	//console.log("request.headers.origin = " + request.headers.origin);
+	//console.log("request = " + JSON.stringify(request.headers));
 	response.setHeader('Access-Control-Allow-Origin', '*');//request.headers.origin);
 	response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
 	response.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
@@ -51,14 +70,16 @@ http.createServer((request, response) => {
 
 	var splittedPath = request.url.split("/");
 	////////////// Printing path received
-	console.log("requested URL " + splittedPath);
-	for (let i = 0; i < splittedPath.length; i++) {
-		console.log("splittedPath[", i, "] = ", splittedPath[i]);
-	}
+	//console.log("requested URL " + splittedPath);
+	//for (let i = 0; i < splittedPath.length; i++) {
+	//	console.log("splittedPath[", i, "] = ", splittedPath[i]);
+	//}
 	/////////////
 
 	
-  if ((request.method === 'PUT') && splittedPath[1].toUpperCase() === 'SET') {// && request.url === '/SET') {
+  if ((request.method === 'PUT' || request.method === 'OPTIONS') && splittedPath[1].toUpperCase() === 'SET') {// && request.url === '/SET') {
+    console.log("request.url = " + request.url);
+    console.log("request.method = " + request.method);
     let body = [];
     request.on('data', (chunk) => {
       body.push(chunk);
@@ -77,25 +98,35 @@ http.createServer((request, response) => {
       //console.log("result = " + result);
       response.end("OK " + result);
   } else if (request.method === 'GET' && splittedPath[1].toUpperCase() === 'GET') {
-	client.get(splittedPath[2], function (error, result) {
-	    if (error) {
-		console.log(error);
-		throw error;
-	    }
-	    //console.log('GET result ->' + JSON.stringify(result));
-	    response.end(result);
+    client.get(splittedPath[2], function (error, result) {
+    if (error) {
+      console.log(error);
+      throw error;
+    }
+    //console.log('GET result ->' + JSON.stringify(result));
+    response.end(result);
 	});
 
   } else if (request.method === 'GET' && splittedPath[1].toUpperCase() === 'DATASET') {
-	client.get(splittedPath[2], function (error, result) {
-	    if (error) {
-		console.log(error);
-		throw error;
-	    }
-	    //console.log('GET result ->' + JSON.stringify(result));
-	    response.end(result);
-	});	
+	  client.get(splittedPath[2], function (error, result) {
+	      if (error) {
+		  console.log(error);
+		  throw error;
+	      }
+	      //console.log('GET result ->' + JSON.stringify(result));
+	      response.end(result);
+	  });	
+  } else if (request.method === 'GET' && splittedPath[1].toUpperCase() === 'DEL') {
+      client.del(splittedPath[2], function(err, response) {
+         if (response == 1) {
+            console.log("Deleted Successfully! lstm_text_generation_model_id_" + i);
+         } else{
+          console.log("Cannot delete lstm_text_generation_model_id_" + i);
+         }
+      });
+
   } else {
+    console.log("request.url = " + request.url);
     console.log("request.method = " + request.method);
     console.log("Method not found.");
     response.statusCode = 404;
