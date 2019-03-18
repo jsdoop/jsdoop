@@ -1,8 +1,0 @@
-{
-  "name": "data_server",
-  "version": "1.0.0",
-  "license": "GPL-3.0",
-  "dependencies": {
-    "redis": "^2.8.0"
-  }
-}

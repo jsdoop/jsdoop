@@ -1,0 +1,11 @@
+{
+  "name": "data-server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/jsdoop/jsdoop",
+  "author": "Jose Angel Morell and Andres Camero",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "redis": "^2.8.0"
+  }
+}
