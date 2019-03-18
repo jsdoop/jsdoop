@@ -6,8 +6,13 @@
 *********************************************************************************************************************/
 
 const {tf, tfjsIOHandler, data, tfjsCustomModel} = require('tfjs-helper');
-const request = require('request');
-const wde = require('web-dist-edge-monitor');
+const wde = require('jsd-monitor');
+
+const JSDLogger = require('jsd-utils/jsd-logger');
+const logger = JSDLogger.logger;
+
+const JSDNet = require('jsd-utils/jsd-db');
+
 
 
 /*********************************************************************************************************************/
@@ -42,17 +47,6 @@ if(local) {
 /* Obtenemos el texto de entrenamiento
 /*********************************************************************************************************************/
 
-async function getText(url){
-  // read text from URL location
-  return new Promise(function(resolve, reject) {
-    request.get(url, function(err, res, content) {
-      let jsonBody = JSON.parse(content);
-      resolve(jsonBody.GET);
-	//resolve(content);
-    });	
-  });	
-}
-
 
 (async () => {
   //TODO batchSize, sampleLen y sampleStep debieran ser configurables
@@ -63,16 +57,18 @@ async function getText(url){
   const textUrl = modelUrl + '/GET/' + taskName + '_text';
   const lstmLayerSizes = [50,50];
 
-  const textString = await getText(textUrl);  
-  // console.log("textString = " + textString);
+
+  const textString = await JSDNet.getText(textUrl);  
   // request.put(modelUrl + '/SET/' + taskName + '_text').form(textString);
   
   const dataset = new data.TextDataset(textString, sampleLen, sampleStep, false);
     
   let model = await tfjsCustomModel.createLstmModel(lstmLayerSizes, sampleLen, dataset.charSet.length);
   let urlSavedModel = modelUrl + "/SET/" + taskName +"_model_id_" + 1;
+  console.log("CURRENT MODEL ID " + modelUrl + '/SET/' + taskName + "_current_model_id");
+  await JSDNet.setText(modelUrl + '/SET/' + taskName + "_current_model_id", 0);
   const saveResults = await model.save(tfjsIOHandler.webdisRequest(urlSavedModel)).catch(error => console.log(error));
-  request.put(urlSavedModel + '_ok').form("OK");
+  //request.put(urlSavedModel + '_ok').form("OK");
   
   // Generación del payload específico para los mappers
   mapPayloadFn = function(ix, mapIx, reduceIx) {
