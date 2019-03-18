@@ -1,7 +1,9 @@
 {
-  "name": "lstm-text-generation",
+  "name": "lstm-worker-app",
   "version": "1.0.0",
   "main": "index.js",
+  "repository": "https://github.com/jsdoop/jsdoop",
+  "author": "Jose Angel Morell and Andres Camero",
   "license": "GPL-3.0",
   "engines": {
     "node": ">=8.9.0"
@@ -20,7 +22,8 @@
     "@tensorflow/tfjs": "^0.15.3",
     "protocol-buffers": "^4.1.0",
     "stomp": "^0.1.1",
-    "tfjs-helper": "file:../tfjs_helper/",
-    "web-dist-edge-worker": "file:../../../wde_worker/"
+    "tfjs-helper": "link:../tfjs-helper/",
+    "jsd-worker": "link:../../../jsd-worker/",
+    "jsd-utils": "link:../../../jsd-utils/"
   }
 }    

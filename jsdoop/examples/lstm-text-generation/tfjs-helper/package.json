@@ -1,7 +1,9 @@
 {
-  "name": "tfjs_helper",
+  "name": "tfjs-helper",
   "version": "1.0.0",
   "main": "index.js",
+  "repository": "https://github.com/jsdoop/jsdoop",
+  "author": "Jose Angel Morell and Andres Camero",
   "license": "GPL-3.0",
   "engines": {
     "node": ">=8.9.0"
@@ -13,6 +15,6 @@
   "dependencies": {
     "@tensorflow/tfjs": "^0.15.3",
     "request": "^2.88.0",
-    "web-dist-edge-utils": "file:../../../wde_utils/"
+    "jsd-utils": "link:../../../jsd-utils/"
   }
 }

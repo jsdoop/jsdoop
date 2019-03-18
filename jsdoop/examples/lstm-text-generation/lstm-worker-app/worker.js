@@ -1,6 +1,9 @@
-const wde = require('web-dist-edge-worker');
+const wde = require('jsd-worker');
 const {tf, tfjsIOHandler, data, tfjsCustomModel} = require('tfjs-helper');
+const JSDLogger = require('jsd-utils/jsd-logger');
+const logger = JSDLogger.logger;
 
+const JSDNet = require('jsd-utils/jsd-db');
 
 
 /*********************************************************************************************************************/
@@ -102,29 +105,8 @@ class TensorFlowData {
     console.log("Mapping");  
     // let model = await tfjsCustomModel.createLstmModel([5,5], 1024, dataset.charSet.length, learningRate = 0.1);
 
-
     await self.updateModel(decodedMsg, self);
     
-    /*
-    //console.log("decodedMsg.payload.getModelUrl = " + decodedMsg.payload.getModelUrl);
-    //console.log("self.currentModelId = " + self.currentModelId);
-    //console.log("modelId = " + modelId);
-    if (self.currentModelId < modelId) {
-      //self.currentModel = await tfjsCustomModel.loadCustomModel(tfjsIOHandler.webdisRequest(decodedMsg.payload.getModelUrl));
-      console.log("Model is outdated. " + self.currentModelId + " < " + modelId);
-      self.currentModel = await self.retryUntilLoadModel(decodedMsg.payload.getModelUrl);
-      self.currentModelId = modelId;
-      console.log("Model updated to " + self.currentModelId);
-      self.currentModel.summary();    
-    } else if (self.currentModelId > modelId) {
-      console.log("Error: It was received a map task from a previous model.");
-      throw new Error();
-    } else {
-      console.log("Model is up to date.");
-      //OK
-    }
-    **/
-
     //TODO learning rate?
     // let optimizer = tf.train.rmsprop(0.1);
     self.currentModel.compile({optimizer: decodedMsg.payload.optimizer, loss: 'categoricalCrossentropy'});  
@@ -197,6 +179,7 @@ class TensorFlowData {
         });
         console.log("MODEL = " + self.currentModel);
         console.log("saving model on " + decodedMsg.payload.putModelUrl);
+        await JSDNet.setText('http://' + serverUrl + ':' + webdisPort + '/SET/' + taskName + "_current_model_id", self.currentModelId);
         await self.currentModel.save(tfjsIOHandler.webdisRequest(decodedMsg.payload.putModelUrl)).catch(error => console.log("ERROR SAVING MODEL " + error));
         //putText("OK", decodedMsg.payload.putModelUrl + "_ok");
         return true; //"TRUE reduce completed"
@@ -205,78 +188,22 @@ class TensorFlowData {
     }
     //console.log("reduceFn = " + JSON.stringify(reduceTask));
 
-
-
 /*
             await self.currentModel.save(tfjsIOHandler.webdisRequest(decodedMsg.payload.putModelUrl)).catch(error => console.log("ERROR SAVING MODEL " + error));
             return true;
 */
     //return "Dummy reduce";
   }
-  
 }
 
-
-
-/*********************************************************************************************************************/
-/* Init worker
-/*********************************************************************************************************************/
-function putText(text, url) {
-        /////////////////////////////
-        let xhr = new XMLHttpRequest();
-        let mimeType = "text/plain";  
-        xhr.open('PUT', url, true);  // true : asynchrone false: synchrone
-        xhr.setRequestHeader('Content-Type', mimeType);  
-        xhr.send(text); 
-        //var xhr = new XMLHttpRequest();
-        //xhr.open("PUT", url, true);
-        //xhr.onload = function () {
-	      //  if (xhr.readyState == 4 && xhr.status == "200") {
-		    //    console.log("TEXT -> " + xhr.responseText);
-	      //  } else {
-		    //    console.error("ERROR: TEXT -> " + xhr.responseText);
-	      //  }
-        //}
-        //xhr.send(text);
-        /////////////////////////////
-}
-
-
-function getText(url){
-    // read text from URL locations
-  return new Promise((resolve, reject) => {
-    let request = new XMLHttpRequest();
-    request.open('GET', url, true);
-    request.mode = 'no-cors';
-    request.overrideMimeType('text/plain;');
-    request.send(null);
-    request.onreadystatechange =  () => {
-      console.log("getText(" + url + ") = " + request.responseText);
-      if (request.readyState === 4 && request.status === 200) {
-        if (request.responseText) {
-          try {
-            let jsonBody = JSON.parse(request.responseText);
-            console.log("returning " + jsonBody.GET);
-            resolve(jsonBody.GET);          
-          } catch (e) {
-            resolve(null);
-          }
-        } else {
-          resolve(null);
-        }
-
-      }
-    }
-  });
-}
 
 (async () => {
-
   const sampleLen = 32; // 1024;
   const sampleStep = 8; // 256;
   const textUrl = 'http://' + serverUrl + ':' + webdisPort + '/GET/' + taskName + '_text';
   // console.log("loading text...");
-  let textString = await getText(textUrl);
+  //let textString = await JSDNet.getText(textUrl);
+  let textString = await JSDNet.getText(textUrl);  
   //console.log("textString = " + textString);
   
   dataset = new data.TextDataset(textString, sampleLen, sampleStep, false);
