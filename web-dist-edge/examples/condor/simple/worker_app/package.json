@@ -1,0 +1,13 @@
+{
+  "name": "lstm-text-generation",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "GPL-3.0",
+  "engines": {
+    "node": ">=8.9.0"
+  },
+  "dependencies": {
+    "stomp": "^0.1.1",
+    "web-dist-edge-worker": "file:../../../../wde_worker/"
+  }
+}
