@@ -1,4 +1,3 @@
-//const stw = require('../libs/stompws.js');
 const Stomp = require('stompjs');
 const SockJS = require('sockjs-client');
 const request = require('request');
@@ -44,7 +43,7 @@ class Worker {
           //reduceMessage.ack();
           //return true; //Consumed msg
           if (msgReceived.length >= decoded.awaitId.length) { //TODO -> Esto es para probar
-            resolve(msgReceived);
+            resolve(msgReceived); //OUTER PROMISE
             //self.unsubscribe(decoded.queueName + "_maps_results_"+ decoded.reduceId, self); // TODO ->¿puede estar el unsubscribe antes del resolve(msgReceived)? //TODO -> Unsubscribe da el error Message with id "T_sub-2@@session-XW1xr6xd--njwHP7cDn6-w@@6" has no subscription
             //resolve(msgReceived.map(x => JSON.parse(x.body)));			//OUTER PROMISE
             //console.log("<<<<<<<<<<<  volviendo del resolve");
@@ -52,19 +51,16 @@ class Worker {
             //console.log("<<<<<<<<<<<  acks");
           }
           return true;
-
         } else {
           console.error("ERROR: Wrong message received on reduceFn(decodedMsg) _maps_results_");
           reduceMessage.nack();
           resolve(null); //OUTER PROMISE
-          throw new Error();
-          return false;
+          throw new Error("ERROR: Wrong message received on reduceFn(decodedMsg) _maps_results_");
+          //return false;
         }
       }, self, decoded.awaitId.length);  // TODO -> decoded.awaitId.length es el número de mensajes que se esperan (prefetch-count)
     });
   }
-
-
 
   async procMap(undecodedMsg, decoded, self) {
     let mapResult = await self.problemData.mapFn(decoded, self.problemData);
@@ -80,32 +76,29 @@ class Worker {
   }
 
   async procReduce(undecodedMsg, decoded, self) {
-      let results = await self.accumulatingReduce(decoded, self);  
-      let accumulatedReduce = results.map(x => JSON.parse(x.body));
-      console.log("AFTER ACCUMULATING REDUCE accumulatedReduce = " + accumulatedReduce);
-      console.log("self.problemData = " + self.problemData);
-      let reduceResult = await self.problemData.reduceFn(accumulatedReduce, decoded, self.problemData);
-
-      if (reduceResult) {
-        console.log("reduceResult TRUE " + reduceResult);
-        let msgResult = {}
-        msgResult.procId = decoded.procId;
-        msgResult.result = reduceResult;
-        //TODO -> De momento solo hay 1 reduce
-        //self.sendToQueue(JSON.stringify(msgResult), decoded.queueName + "_reduces");	//TODO -> async? await?
-
-        self.ack(undecodedMsg, self);
-        
-        results.map(x => self.ack(x, self));
-        return true;
-      } else {
-        console.warn("WARNING: reduceResult FALSE " + reduceResult);
-        self.nack(undecodedMsg, self);
-        results.map(x => self.nack(x, self));
-        return false;
-      }	
+    let results = await self.accumulatingReduce(decoded, self);  
+    let accumulatedReduce = results.map(x => JSON.parse(x.body));
+    console.log("AFTER ACCUMULATING REDUCE accumulatedReduce = " + accumulatedReduce);
+    console.log("self.problemData = " + self.problemData);
+    let reduceResult = await self.problemData.reduceFn(accumulatedReduce, decoded, self.problemData);
+    if (reduceResult) {
+      console.log("reduceResult TRUE " + reduceResult);
+      let msgResult = {}
+      msgResult.procId = decoded.procId;
+      msgResult.result = reduceResult;
+      //TODO -> De momento solo hay 1 reduce
+      //self.sendToQueue(JSON.stringify(msgResult), decoded.queueName + "_reduces_" + decoded.reduceId);	//TODO -> async? await?
+      self.sendToQueue(JSON.stringify(msgResult), decoded.queueName + "_reduces_results");	//TODO -> async? await?      
+      self.ack(undecodedMsg, self);
+      results.map(x => self.ack(x, self));
+      return true;
+    } else {
+      console.warn("WARNING: reduceResult FALSE " + reduceResult);
+      self.nack(undecodedMsg, self);
+      results.map(x => self.nack(x, self));
+      return false;
+    }	
   }
-
 
   async procMessage(undecodedMsg, self) {
     const decoded = JSON.parse(undecodedMsg.body); 
@@ -114,8 +107,8 @@ class Worker {
         return await self.procMap(undecodedMsg, decoded, self);
       } else {
         console.error("ERROR: Map function not found");
-        throw new Error();
         self.nack(undecodedMsg, self);
+        throw new Error("ERROR: Map function not found");
         return false;
       }
     } else if ( decoded.mapOrReduce == "reduce" ) {
@@ -123,14 +116,14 @@ class Worker {
         return await self.procReduce(undecodedMsg, decoded, self);      
       } else {
         console.error("ERROR: Reduce function not found");
-        throw new Error();
         self.nack(undecodedMsg, self);
+        throw new Error();
         return false;
       }  
     } else {
       console.error("ERROR: Task corrupted");
       self.nack(undecodedMsg, self);
-      throw new Error();
+      throw new Error("ERROR: Task corrupted");
     }  
   }
 
@@ -186,6 +179,5 @@ class Worker {
     this.client.connect(this.user, this.pswd, onConnect, onError, '/');
   }
 }
-
 
 module.exports.Worker = Worker;

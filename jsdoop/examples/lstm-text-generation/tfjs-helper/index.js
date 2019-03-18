@@ -1,6 +1,6 @@
-const tfjsIOHandler = require('./tfjsIOHandler.js');
+const tfjsIOHandler = require('./tfjs_io_handler.js');
 const data = require('./data.js');
-const tfjsCustomModel = require('./tfjsCustomModel.js');
+const tfjsCustomModel = require('./tfjs_custom_model.js');
 const tf = require('@tensorflow/tfjs');
 
 

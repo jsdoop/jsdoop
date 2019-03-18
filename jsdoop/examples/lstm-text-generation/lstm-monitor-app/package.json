@@ -1,0 +1,17 @@
+{
+  "name": "lstm-monitor-app",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/jsdoop/jsdoop",
+  "author": "Jose Angel Morell and Andres Camero",
+  "license": "GPL-3.0",
+  "engines": {
+    "node": ">=8.9.0"
+  },
+  "dependencies": {
+    "request": "^2.88.0",
+    "tfjs-helper": "link:../tfjs-helper/",
+    "jsd-monitor": "link:../../../jsd-monitor/",
+    "jsd-utils": "link:../../../jsd-utils/"
+  }
+}
