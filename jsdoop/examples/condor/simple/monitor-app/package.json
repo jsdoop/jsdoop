@@ -1,5 +1,5 @@
 {
-  "name": "lstm-text-generation",
+  "name": "lstm-text-generation-monitor",
   "version": "1.0.0",
   "main": "index.js",
   "license": "GPL-3.0",
@@ -7,7 +7,7 @@
     "node": ">=8.9.0"
   },
   "dependencies": {
-    "stomp": "^0.1.1",
-    "web-dist-edge-worker": "file:../../../../wde_worker/"
+    "request": "^2.88.0",
+    "jsd-monitor": "file:../../../../jsd-monitor/"
   }
 }

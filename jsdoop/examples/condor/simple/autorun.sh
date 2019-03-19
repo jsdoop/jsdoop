@@ -1,6 +1,6 @@
 #!/bin/bash
 
-unzip worker_app.zip
+unzip worker-app.zip
 
 # Timeout (seconds).
 timeout="$1"
@@ -26,4 +26,4 @@ delay=10
     kill -s SIGKILL $$
 ) 2> /dev/null &
 
-exec node worker_app/worker.js $proc
+exec node worker-app/worker.js $proc
