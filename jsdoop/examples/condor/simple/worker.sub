@@ -8,6 +8,6 @@ Output         = logs/output.$(Process).out
 Error          = logs/error.$(Process).err
 Log            = logs/log.$(Process).log
 Should_transfer_files   = YES
-Transfer_input_files    = worker_app.zip
+Transfer_input_files    = worker-app.zip
 When_to_transfer_output = ON_EXIT
 Queue 1

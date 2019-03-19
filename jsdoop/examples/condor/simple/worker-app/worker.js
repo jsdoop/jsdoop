@@ -1,4 +1,4 @@
-const wde = require('web-dist-edge-worker');
+const wde = require('jsd-worker');
 
 
 /*********************************************************************************************************************/
@@ -15,45 +15,50 @@ let pswd = 'mypassword';
 let webdisPort = 7379;
 let workerId = 0;
 
-/*********************************************************************************************************************/
-/* Map function
-/*********************************************************************************************************************/
+
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-
-async function mapFn(decodedMsg) { 
-  console.log("# Worker " + workerId + " - Map " + decodedMsg.payload );
-  await sleep(300);
-  return decodedMsg.payload;
-}
-
-
 /*********************************************************************************************************************/
-/* Reduce function
+/* Problem
 /*********************************************************************************************************************/
 
-async function reduceFn(decodedMsg) {
-  console.log("# Worker " + workerId + " - Reduce " + decodedMsg.payload );
-  //TODO consumir cola de map results
-  await sleep(300);
-  return "0 messages reduced";
-}
 
+class SimpleProblem {
+  constructor() {
+  }
+  async mapFn(decodedMsg) { 
+    console.log("# Worker " + workerId + " - Map " + decodedMsg.payload );
+    await sleep(300);
+    return decodedMsg.payload;
+  }
+
+  async reduceFn(decodedMsg) {
+    console.log("# Worker " + workerId + " - Reduce " + decodedMsg.payload );
+    //TODO consumir cola de map results
+    await sleep(300);
+    return "0 messages reduced";
+  }
+}
 
 /*********************************************************************************************************************/
 /* Init worker
 /*********************************************************************************************************************/
 
 (async () => {  
-  // let workingTime = parseInt(process.argv.slice(2)[0]) * 1000;
-  if(process.argv.slice(2)[1]) {
-    workerId = process.argv.slice(2)[1];
+  if(process.argv.slice(2)[0]) {
+    workerId = process.argv.slice(2)[0];
   }
-  // console.log("# Worker " + workerId + " (working time=" + workingTime + "[ms])");
-  
-  let worker = new wde.Worker(serverUrl, port, queueName, user, pswd, mapFn, reduceFn);
+  let workingTime = false;
+  if(process.argv.slice(2)[1]) {
+    workingTime = parseInt(process.argv.slice(2)[1]) * 1000;
+  }
+  console.log("# Worker " + workerId + " (working time=" + workingTime + "[ms])");
+  let problem = new SimpleProblem()
+  let worker = new wde.Worker(serverUrl, port, queueName, user, pswd, problem);
   worker.start();
-  // setTimeout(function(){console.log("# Worker " + workerId + " disconnected"); process.exit(0);}, workingTime);
+  if(workingTime) {
+    setTimeout(function(){console.log("# Worker " + workerId + " disconnected"); process.exit(0);}, workingTime);
+  }
 })();
