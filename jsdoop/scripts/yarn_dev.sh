@@ -2,13 +2,28 @@
 
 cd ..
 
-# Just in case...
-yarn unlink "jsd-utils"
-yarn unlink "jsd-worker"
-yarn unlink "jsd-monitor"
-yarn unlink "tfjs-helper"
-
 # Unlink
+cd jsd-monitor
+rm -r node_modules
+yarn unlink "jsd-utils"
+cd ..
+
+cd jsd-worker
+rm -r node_modules
+yarn unlink "jsd-utils"
+cd ..
+
+cd jsd-utils
+rm -r node_modules
+cd jsd-db
+rm -r node_modules
+cd ..
+cd jsd-logger
+rm -r node_modules
+cd ..
+cd ..
+
+
 cd examples/lstm-text-generation/tfjs-helper
 rm -r node_modules
 yarn unlink "jsd-utils"
@@ -32,19 +47,29 @@ cd ../../..
 
 
 # Prepare and link
-cd jsd-monitor
-yarn
-yarn link
-cd ..
-
 cd jsd-utils
 yarn
 yarn link
+cd jsd-logger
+yarn
+yarn link
+cd ..
+cd jsd-db
+yarn
+yarn link
+cd ..
+cd ..
+
+cd jsd-monitor
+yarn
+yarn link
+yarn link "jsd-utils"
 cd ..
 
 cd jsd-worker
 yarn
 yarn link
+yarn link "jsd-utils"
 cd ..
 
 cd examples/lstm-text-generation/tfjs-helper

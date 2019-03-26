@@ -3,7 +3,7 @@ const {tf, tfjsIOHandler, data, tfjsCustomModel} = require('tfjs-helper');
 const JSDLogger = require('jsd-utils/jsd-logger');
 const logger = JSDLogger.logger;
 
-const JSDNet = require('jsd-utils/jsd-db');
+const JSDDB = require('jsd-utils/jsd-db');
 
 
 /*********************************************************************************************************************/
@@ -45,29 +45,29 @@ class TensorFlowData {
   }
 
   async retryUntilLoadModel(modelUrl) {
-	  console.log("Loading model -> " + modelUrl);
+	  logger.debug("Loading model -> " + modelUrl);
     /*
     let isReady = await getText(modelUrl + "_ok");
     while (isReady != "OK") {
-		  console.log("Model not found -> " + modelUrl);
-		  console.log("Retrying loading the model -> " + modelUrl);
+		  logger.debug("Model not found -> " + modelUrl);
+		  logger.debug("Retrying loading the model -> " + modelUrl);
 		  await sleep(5000);
       isReady = await getText(modelUrl + "_ok");
-      console.log("isReady = " + isReady);
+      logger.debug("isReady = " + isReady);
     }
     let model = await tfjsCustomModel.loadCustomModel(tfjsIOHandler.webdisRequest(modelUrl));
     if (!model) {
-      console.log("ERROR: Model could not be loaded.");
+      logger.debug("ERROR: Model could not be loaded.");
       throw new Error();
     }
     */
 	  let model = await tfjsCustomModel.loadCustomModel(tfjsIOHandler.webdisRequest(modelUrl));
 	  while (!model) {
-		  console.log("Model not found -> " + modelUrl);
-		  console.log("Retrying loading the model -> " + modelUrl);
+		  logger.debug("Model not found -> " + modelUrl);
+		  logger.debug("Retrying loading the model -> " + modelUrl);
 		  model = await tfjsCustomModel.loadCustomModel(tfjsIOHandler.webdisRequest(modelUrl));
 	  }
-    console.log("Loaded model -> " + modelUrl + " -> " + model);
+    logger.debug("Loaded model -> " + modelUrl + " -> " + model);
 	  return model;
   }
 
@@ -77,17 +77,17 @@ class TensorFlowData {
     modelId = modelId.substring(modelId.indexOf(taskName +"_model_id_") + (taskName +"_model_id_").length, modelId.length);
     if (self.currentModelId != modelId) {
       //self.currentModel = await tfjsCustomModel.loadCustomModel(tfjsIOHandler.webdisRequest(decodedMsg.payload.getModelUrl));
-      console.log("Model is outdated. " + self.currentModelId + " < " + modelId);
+      logger.debug("Model is outdated. " + self.currentModelId + " < " + modelId);
       self.currentModel = await self.retryUntilLoadModel(decodedMsg.payload.getModelUrl);
       self.currentModelId = modelId;
-      console.log("Model updated to " + self.currentModelId);
+      logger.debug("Model updated to " + self.currentModelId);
       self.currentModel.summary();   
       return true; 
    // } else if (self.currentModelId > modelId) {
-   //   console.log("Error: It was received a map task from a previous model.");
+   //   logger.debug("Error: It was received a map task from a previous model.");
    //   throw new Error();
     } else {
-      console.log("Model is up to date.");
+      logger.debug("Model is up to date.");
       return true;
       //OK
     }
@@ -102,7 +102,7 @@ class TensorFlowData {
     //pueden haber miles de tareas en segundo plano tal y como está implementado. Hay que poner que no coja nuevas tareas mientras 
     //se estén resolviendo N tareas.
     //TODO revisar que el modelo exista y espere
-    console.log("Mapping");  
+    logger.debug("Mapping");  
     // let model = await tfjsCustomModel.createLstmModel([5,5], 1024, dataset.charSet.length, learningRate = 0.1);
 
     await self.updateModel(decodedMsg, self);
@@ -121,13 +121,13 @@ class TensorFlowData {
 	  //let jsonGradShapes = {};
 	  const tensorNames = Object.keys(grads);
 	  tensorNames.forEach(tensorName => {
-		  //console.log("### tensorNames[" + tensorName + "]" + grads[tensorName]);
+		  //logger.debug("### tensorNames[" + tensorName + "]" + grads[tensorName]);
 		
       //jsonGradShapes[tensorName] = grads[tensorName].shape;  //No necesitamos el shape
 		  jsonGrads[tensorName] = grads[tensorName].arraySync(); //grads[tensorName].flatten().arraySync();
 		  //jsonGrads[tensorName] = tf.tensor(jsonGrads[tensorName]);
 	  });
-	  //console.log(".............................jsonGrads = " + JSON.stringify(jsonGrads));
+	  //logger.debug(".............................jsonGrads = " + JSON.stringify(jsonGrads));
 	  //model.optimizer.applyGradients(jsonGrads);
     //result.shapes = jsonGradShapes;
     result.grads = jsonGrads;
@@ -143,19 +143,19 @@ class TensorFlowData {
     
     //TODO -> Es posible que sea necesario procesar los mensajes de 1 en 1 para que no haya varios procesos en segundo plano llamando
     // a reduceFn y a mapFn al mismo tiempo.
-    console.log("Reducing");
+    logger.debug("Reducing");
 
 
     await self.updateModel(decodedMsg, self);
 
     ///////////////////////////////////////////////////TESTING
-    console.log("### decodedMsg = " + decodedMsg);
+    logger.debug("### decodedMsg = " + decodedMsg);
     if (decodedMsg) {
-      console.log("### decodedMsg.payload = " + decodedMsg);
-      console.log("### decodedMsg.payload.putModelUrl = " + decodedMsg.payload.putModelUrl);
-      console.log("### vectorToReduce = " + vectorToReduce);
-      console.log("### vectorToReduce.length = " + vectorToReduce.length);
-      console.log("### vectorToReduce[0].result.grads = " + vectorToReduce[0].result.grads);
+      logger.debug("### decodedMsg.payload = " + decodedMsg);
+      logger.debug("### decodedMsg.payload.putModelUrl = " + decodedMsg.payload.putModelUrl);
+      logger.debug("### vectorToReduce = " + vectorToReduce);
+      logger.debug("### vectorToReduce.length = " + vectorToReduce.length);
+      logger.debug("### vectorToReduce[0].result.grads = " + vectorToReduce[0].result.grads);
     }
     ///////////////////////////////////////////////////TESTING
 
@@ -164,7 +164,7 @@ class TensorFlowData {
         tf.tidy(() => {
           //let procId = vectorToReduce[0].procId.substring("mapper_".length, vectorToReduce[0].procId.length);
           //procId = procId.substring(0, procId.indexOf("_"));
-          //console.log("PROC_ID = " + procId);
+          //logger.debug("PROC_ID = " + procId);
           let tensors = {};
           const tensorNames = Object.keys(vectorToReduce[0].result.grads);
           tensorNames.forEach(tensorName => {
@@ -174,22 +174,22 @@ class TensorFlowData {
             }
             tensors[tensorName] = tf.addN(tensors[tensorName]);
           });
-          console.log("APPLYING TENSORS = " + JSON.stringify(tensors) + decodedMsg.payload.putModelUrl);
+          logger.debug("APPLYING TENSORS = " + JSON.stringify(tensors) + decodedMsg.payload.putModelUrl);
           self.currentModel.optimizer.applyGradients(tensors); 
         });
-        console.log("MODEL = " + self.currentModel);
-        console.log("saving model on " + decodedMsg.payload.putModelUrl);
-        await JSDNet.setText('http://' + serverUrl + ':' + webdisPort + '/SET/' + taskName + "_current_model_id", self.currentModelId);
-        await self.currentModel.save(tfjsIOHandler.webdisRequest(decodedMsg.payload.putModelUrl)).catch(error => console.log("ERROR SAVING MODEL " + error));
+        logger.debug("MODEL = " + self.currentModel);
+        logger.debug("saving model on " + decodedMsg.payload.putModelUrl);
+        await JSDDB.setText('http://' + serverUrl + ':' + webdisPort + '/SET/' + taskName + "_current_model_id", self.currentModelId);
+        await self.currentModel.save(tfjsIOHandler.webdisRequest(decodedMsg.payload.putModelUrl)).catch(error => logger.debug("ERROR SAVING MODEL " + error));
         //putText("OK", decodedMsg.payload.putModelUrl + "_ok");
         return true; //"TRUE reduce completed"
     } else {
       return false; //"FALSE reduce incompleted"
     }
-    //console.log("reduceFn = " + JSON.stringify(reduceTask));
+    //logger.debug("reduceFn = " + JSON.stringify(reduceTask));
 
 /*
-            await self.currentModel.save(tfjsIOHandler.webdisRequest(decodedMsg.payload.putModelUrl)).catch(error => console.log("ERROR SAVING MODEL " + error));
+            await self.currentModel.save(tfjsIOHandler.webdisRequest(decodedMsg.payload.putModelUrl)).catch(error => logger.debug("ERROR SAVING MODEL " + error));
             return true;
 */
     //return "Dummy reduce";
@@ -201,13 +201,13 @@ class TensorFlowData {
   const sampleLen = 32; // 1024;
   const sampleStep = 8; // 256;
   const textUrl = 'http://' + serverUrl + ':' + webdisPort + '/GET/' + taskName + '_text';
-  // console.log("loading text...");
-  //let textString = await JSDNet.getText(textUrl);
-  let textString = await JSDNet.getText(textUrl);  
-  //console.log("textString = " + textString);
+  // logger.debug("loading text...");
+  //let textString = await JSDDB.getText(textUrl);
+  let textString = await JSDDB.getText(textUrl);  
+  //logger.debug("textString = " + textString);
   
   dataset = new data.TextDataset(textString, sampleLen, sampleStep, false);
-  console.log("waiting tasks ...");
+  logger.debug("waiting tasks ...");
   let problemData = new TensorFlowData();
   let worker = new wde.Worker(serverUrl, port, queueName, user, pswd, problemData);
   worker.start();
