@@ -6,6 +6,7 @@
   "author": "Jose Angel Morell and Andres Camero",
   "license": "GPL-3.0",
   "dependencies": {
-    "amqplib": "^0.5.3"
+    "amqplib": "^0.5.3",
+    "jsd-utils": "link:../jsd-utils/"
   }
 }
