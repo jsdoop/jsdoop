@@ -11,7 +11,7 @@ const wde = require('jsd-monitor');
 const JSDLogger = require('jsd-utils/jsd-logger');
 const logger = JSDLogger.logger;
 
-const JSDNet = require('jsd-utils/jsd-db');
+const JSDDB = require('jsd-utils/jsd-db');
 
 
 
@@ -58,16 +58,16 @@ if(local) {
   const lstmLayerSizes = [50,50];
 
 
-  const textString = await JSDNet.getText(textUrl);  
+  const textString = await JSDDB.getText(textUrl);  
   // request.put(modelUrl + '/SET/' + taskName + '_text').form(textString);
   
   const dataset = new data.TextDataset(textString, sampleLen, sampleStep, false);
     
   let model = await tfjsCustomModel.createLstmModel(lstmLayerSizes, sampleLen, dataset.charSet.length);
   let urlSavedModel = modelUrl + "/SET/" + taskName +"_model_id_" + 1;
-  console.log("CURRENT MODEL ID " + modelUrl + '/SET/' + taskName + "_current_model_id");
-  await JSDNet.setText(modelUrl + '/SET/' + taskName + "_current_model_id", 0);
-  const saveResults = await model.save(tfjsIOHandler.webdisRequest(urlSavedModel)).catch(error => console.log(error));
+  logger.debug("CURRENT MODEL ID " + modelUrl + '/SET/' + taskName + "_current_model_id");
+  await JSDDB.setText(modelUrl + '/SET/' + taskName + "_current_model_id", 0);
+  const saveResults = await model.save(tfjsIOHandler.webdisRequest(urlSavedModel)).catch(error => logger.debug(error));
   //request.put(urlSavedModel + '_ok').form("OK");
   
   // Generación del payload específico para los mappers
@@ -106,7 +106,7 @@ if(local) {
   if(accumReduce > numMaps) {
     accumReduce = numMaps;
   }
-  console.log("Name=" + taskName + ", numMaps=" + numMaps + ", accumReduce=" + accumReduce);
+  logger.debug("Name=" + taskName + ", numMaps=" + numMaps + ", accumReduce=" + accumReduce);
   
   // Finalmente encolamos las tareas
   //wde.enqueueTask(amqpConnOptions, queueName, numMaps, accumReduce, mapPayloadFn, reducePayloadFn);
@@ -115,7 +115,7 @@ if(local) {
   [conn, ch] = await wde.wdeConnect(amqpConnOptions);
   //ch.prefetch(1); 
   await wde.enqueueTask(ch, queueName, numMaps, accumReduce, mapPayloadFn, reducePayloadFn);
-  setTimeout(function(){ch.close(); conn.close(); console.log("DISCONNECTED CORRECTLY"); process.exit(0);},500);
+  setTimeout(function(){ch.close(); conn.close(); logger.debug("DISCONNECTED CORRECTLY"); process.exit(0);},500);
 
 })();
 
