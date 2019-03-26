@@ -11,9 +11,9 @@ async function createLstmModel(lstmLayerSizes, sampleLen, charSetSize, learningR
   for (let i = 0; i < lstmLayerSizes.length; ++i) {
     const lstmLayerSize = lstmLayerSizes[i];
     model.add(tf.layers.lstm({
-        units: lstmLayerSize,
-        returnSequences: i < lstmLayerSizes.length - 1,
-        inputShape: i === 0 ? [sampleLen, charSetSize] : undefined
+      units: lstmLayerSize,
+      returnSequences: i < lstmLayerSizes.length - 1,
+      inputShape: i === 0 ? [sampleLen, charSetSize] : undefined
     }));
   }
   model.add(tf.layers.dense({units: charSetSize, activation: 'softmax'}));
@@ -45,7 +45,7 @@ tf.Model.prototype.getGradientsAndSaveActions = function (x, y) {
       return tf.losses.softmaxCrossEntropy(y, labels).asScalar();
     });
   }
-/*  const {value, grads} = tf.variableGrads(f);
+  /*  const {value, grads} = tf.variableGrads(f);
   console.log(grads);
   return {value, grads};*/
   return tf.variableGrads(f);

@@ -11,26 +11,26 @@ class JSDLogger {
 
   error(msg) {
     if (this.errorLevel <= this.verbosity) {
-      console.error(msg);
+      console.error("ERROR: " + msg);
     }
   }
 
   warn(msg) {
     if (this.warnLevel <= this.verbosity) {
-      console.warn(msg);
+      console.warn("WARN: " + msg);
     }
   }
 
 
   info(msg) {
     if (this.infoLevel <= this.verbosity) {
-      console.info(msg);
+      console.info("INFO: " + msg);
     }
   }
 
   debug(msg) {
     if (this.debugLevel <= this.verbosity) { 
-      console.debug(msg);
+      console.debug("DEBUG: " + msg);
     }
   }
 
@@ -38,7 +38,7 @@ class JSDLogger {
     if (level === undefined) level = this.infoLevel;
     console.log("level = " + level);
     if (level <= this.verbosity) {
-      console.log(msg);
+      console.log("LOG: " + msg);
     }
   }
   

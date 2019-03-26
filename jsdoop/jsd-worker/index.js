@@ -1,6 +1,9 @@
 const Stomp = require('stompjs');
 const SockJS = require('sockjs-client');
-const request = require('request');
+
+const JSDLogger = require('jsd-utils/jsd-logger');
+const logger = JSDLogger.logger;
+
 
 /**
 * WORKER (JavaScript Client)
@@ -11,13 +14,13 @@ class Worker {
     //this.reduceFn = reduceFn;
     this.problemData = problemData;
     this.wsConnStr = 'http://' + serverUrl + ':' + port + '/stomp';
-    console.log(">>>>> this.wsConnStr = " + this.wsConnStr);
+    logger.debug("Stomp URL = " + this.wsConnStr);
     this.user = user;
     this.pswd = pswd;
     this.queueName = queueName;
     let ws = new SockJS(this.wsConnStr);
     this.client = Stomp.over(ws);
-    this.client.heartbeat.outgoing = 5000//0;
+    this.client.heartbeat.outgoing = 5000;//0;
     this.client.heartbeat.incoming = 0;
     this.client.reconnect_delay = 3000;
 
@@ -27,7 +30,7 @@ class Worker {
   }
 
   sendToQueue(msg, queueName) {
-    console.log("Mensaje '" + JSON.stringify(msg).substring(0, 100) + "' encolado en " + queueName);
+    logger.debug("MSG '" + JSON.stringify(msg).substring(0, 100) + "' queued on " + queueName);
     this.client.send(queueName, {priority: 9}, msg);
   }
 
@@ -39,20 +42,20 @@ class Worker {
           // TODO Chequear si el mensaje recibido es para mi o no, o si es un mensaje antiguo, etc. 
           //const json = JSON.parse(reduceMessage.body); ;
           msgReceived.push(reduceMessage);
-          console.log("total reduce received = " + msgReceived.length);
+          logger.debug("total reduce received = " + msgReceived.length);
           //reduceMessage.ack();
           //return true; //Consumed msg
           if (msgReceived.length >= decoded.awaitId.length) { //TODO -> Esto es para probar
             resolve(msgReceived); //OUTER PROMISE
             //self.unsubscribe(decoded.queueName + "_maps_results_"+ decoded.reduceId, self); // TODO ->¿puede estar el unsubscribe antes del resolve(msgReceived)? //TODO -> Unsubscribe da el error Message with id "T_sub-2@@session-XW1xr6xd--njwHP7cDn6-w@@6" has no subscription
             //resolve(msgReceived.map(x => JSON.parse(x.body)));			//OUTER PROMISE
-            //console.log("<<<<<<<<<<<  volviendo del resolve");
+            //logger.debug("<<<<<<<<<<<  volviendo del resolve");
             //msgReceived.map(x => x.ack())
-            //console.log("<<<<<<<<<<<  acks");
+            //logger.debug("<<<<<<<<<<<  acks");
           }
           return true;
         } else {
-          console.error("ERROR: Wrong message received on reduceFn(decodedMsg) _maps_results_");
+          logger.error("ERROR: Wrong message received on reduceFn(decodedMsg) _maps_results_");
           reduceMessage.nack();
           resolve(null); //OUTER PROMISE
           throw new Error("ERROR: Wrong message received on reduceFn(decodedMsg) _maps_results_");
@@ -64,12 +67,12 @@ class Worker {
 
   async procMap(undecodedMsg, decoded, self) {
     let mapResult = await self.problemData.mapFn(decoded, self.problemData);
-    console.log("mapResult = " + mapResult);
+    logger.debug("mapResult = " + mapResult);
     let msgResult = {}
     msgResult.procId = decoded.procId;
     msgResult.result = mapResult;
     //TODO Crear una cola para cada reduce decoded.queueName + "_maps_results_" + id
-    console.log("sendToQueue Map",msgResult, (decoded.queueName + "_maps_results_"+ decoded.reduceId));
+    logger.debug("sendToQueue Map",msgResult, (decoded.queueName + "_maps_results_"+ decoded.reduceId));
     self.sendToQueue(JSON.stringify(msgResult), decoded.queueName + "_maps_results_"+ decoded.reduceId);
     self.ack(undecodedMsg, self);
     return true;
@@ -78,11 +81,11 @@ class Worker {
   async procReduce(undecodedMsg, decoded, self) {
     let results = await self.accumulatingReduce(decoded, self);  
     let accumulatedReduce = results.map(x => JSON.parse(x.body));
-    console.log("AFTER ACCUMULATING REDUCE accumulatedReduce = " + accumulatedReduce);
-    console.log("self.problemData = " + self.problemData);
+    logger.debug("AFTER ACCUMULATING REDUCE accumulatedReduce = " + accumulatedReduce);
+    logger.debug("self.problemData = " + self.problemData);
     let reduceResult = await self.problemData.reduceFn(accumulatedReduce, decoded, self.problemData);
     if (reduceResult) {
-      console.log("reduceResult TRUE " + reduceResult);
+      logger.debug("reduceResult TRUE " + reduceResult);
       let msgResult = {}
       msgResult.procId = decoded.procId;
       msgResult.result = reduceResult;
@@ -93,7 +96,7 @@ class Worker {
       results.map(x => self.ack(x, self));
       return true;
     } else {
-      console.warn("WARNING: reduceResult FALSE " + reduceResult);
+      logger.warn("WARNING: reduceResult FALSE " + reduceResult);
       self.nack(undecodedMsg, self);
       results.map(x => self.nack(x, self));
       return false;
@@ -106,7 +109,7 @@ class Worker {
       if(self.problemData.mapFn && typeof(self.problemData.mapFn) == 'function') {
         return await self.procMap(undecodedMsg, decoded, self);
       } else {
-        console.error("ERROR: Map function not found");
+        logger.error("ERROR: Map function not found");
         self.nack(undecodedMsg, self);
         throw new Error("ERROR: Map function not found");
         return false;
@@ -115,13 +118,13 @@ class Worker {
       if(self.problemData.reduceFn && typeof(self.problemData.reduceFn) == 'function') {
         return await self.procReduce(undecodedMsg, decoded, self);      
       } else {
-        console.error("ERROR: Reduce function not found");
+        logger.error("ERROR: Reduce function not found");
         self.nack(undecodedMsg, self);
         throw new Error();
         return false;
       }  
     } else {
-      console.error("ERROR: Task corrupted");
+      logger.error("ERROR: Task corrupted");
       self.nack(undecodedMsg, self);
       throw new Error("ERROR: Task corrupted");
     }  
@@ -129,24 +132,24 @@ class Worker {
 
   receive(queueName, message, self) {
     self.totalMsgs++;
-    console.log("\n\n-------------------------------------------------------");
-    console.log("+++ MSG total = " + self.totalMsgs + " -> " + message.body);
-    console.log("msg from queue = " + queueName);
-    console.log("message.body = " + message.body);
+    logger.debug("\n\n-------------------------------------------------------");
+    logger.debug("+++ MSG total = " + self.totalMsgs + " -> " + message.body);
+    logger.debug("msg from queue = " + queueName);
+    logger.debug("message.body = " + message.body);
   }
 
   ack(message, self) {
     message.ack();
-    console.log("INFO: Msg ack() -> " + message.body);
+    logger.debug("INFO: Msg ack() -> " + message.body);
     self.totalMsgs--;
-    console.log("--- MSG total = " + self.totalMsgs + " -> " + message.body);
+    logger.debug("--- MSG total = " + self.totalMsgs + " -> " + message.body);
   }
 
   nack(message, self) {
     message.nack();
-    console.warn("WARNING: Msg nack() -> " + message.body);
+    logger.warn("WARNING: Msg nack() -> " + message.body);
     self.totalMsgs--;
-    console.log("--- MSG total = " + self.totalMsgs + " -> " + message.body);
+    logger.debug("--- MSG total = " + self.totalMsgs + " -> " + message.body);
   }
 
   subscribe(queueName, mypromise, self, prefetch) {
@@ -157,15 +160,15 @@ class Worker {
 
     let queueObject = self.client.subscribe(queueName, async (message) => {
       self.receive(queueName, message, self);
-      console.log("mypromise result = " + await mypromise(message, self));
+      logger.debug("mypromise result = " + await mypromise(message, self));
     }, {ack: 'client', 'prefetch-count': prefetch});
     self.queuesObjects[queueName] = queueObject;
-    console.log("Subscribing to " + queueName + " queueObject = " + JSON.stringify(queueObject));
+    logger.debug("Subscribing to " + queueName + " queueObject = " + JSON.stringify(queueObject));
   }
 
   unsubscribe(queueName, self) {
     let queueObject = self.queuesObjects[queueName];
-    console.log("Unsubscribing from " + queueName + " queueObject = " + JSON.stringify(queueObject));
+    logger.debug("Unsubscribing from " + queueName + " queueObject = " + JSON.stringify(queueObject));
     queueObject.unsubscribe();
   }
 
@@ -174,7 +177,7 @@ class Worker {
       this.subscribe(this.queueName, this.procMessage, this);
     }
     let onError = (e) => {
-      console.error("ERROR: Error connecting to " + this.wsConnStr + " -> " + e);
+      logger.error("ERROR: Error connecting to " + this.wsConnStr + " -> " + e);
     }
     this.client.connect(this.user, this.pswd, onConnect, onError, '/');
   }
