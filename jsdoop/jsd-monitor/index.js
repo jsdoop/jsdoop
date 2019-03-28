@@ -100,3 +100,31 @@ async function enqueueTask(ch, queueName, numMaps, accumReduce, mapPayloadFn=nul
 }
 
 module.exports.enqueueTask = enqueueTask;
+
+
+async function asyncDeleteQueue(q, ch) {
+  return new Promise(function(resolve, reject) {
+    logger.debug("Ready to delete " + q);    
+    ch.purgeQueue(q , function(err, ok) {
+      logger.debug(err ? err:ok);
+      if(err) resolve(false);
+      resolve(true); 
+    });	
+  });
+}
+
+
+async function purgeQueuesTask(taskName, ch, maxTask) {
+  let base = taskName + '_queue';
+  await asyncDeleteQueue(base, ch)
+  for(let i=1; i < maxTask; i++) {
+    let isQueue = await asyncDeleteQueue(base + "maps_results_" + i, ch);
+    if(!isQueue) break;
+  }
+  for(let i=1; i < maxTask; i++) {
+    let isQueue = await asyncDeleteQueue(base + "reduces_results_" + i, ch);
+    if(!isQueue) break;
+  }
+}
+
+module.exports.purgeQueuesTask = purgeQueuesTask;

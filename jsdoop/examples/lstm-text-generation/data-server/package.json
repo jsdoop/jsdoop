@@ -6,6 +6,8 @@
   "author": "Jose Angel Morell and Andres Camero",
   "license": "GPL-3.0",
   "dependencies": {
-    "redis": "^2.8.0"
+    "redis": "^2.8.0",
+    "jsd-utils": "link:../../../jsd-utils/",
+    "jsd-monitor": "link:../../../jsd-monitor/"
   }
 }
