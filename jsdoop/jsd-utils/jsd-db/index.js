@@ -1,5 +1,6 @@
 const request = require('request');
 
+
 async function getText(url){
   // read text from URL location
   return new Promise(function(resolve, reject) {
