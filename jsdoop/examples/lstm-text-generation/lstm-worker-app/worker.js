@@ -61,11 +61,13 @@ class TensorFlowData {
       throw new Error();
     }
     */
+    //TODO Se debe comprobar que el resultado de modelUrl sea distinto de nulo, luego se carga
 	  let model = await tfjsCustomModel.loadCustomModel(tfjsIOHandler.webdisRequest(modelUrl));
 	  while (!model) {
-		  logger.debug("Model not found -> " + modelUrl);
-		  logger.debug("Retrying loading the model -> " + modelUrl);
+		  //logger.debug("Model not found -> " + modelUrl);
+		  //logger.debug("Retrying loading the model -> " + modelUrl);
 		  model = await tfjsCustomModel.loadCustomModel(tfjsIOHandler.webdisRequest(modelUrl));
+                  // 
 	  }
     logger.debug("Loaded model -> " + modelUrl + " -> " + model);
 	  return model;
@@ -81,7 +83,8 @@ class TensorFlowData {
       self.currentModel = await self.retryUntilLoadModel(decodedMsg.payload.getModelUrl);
       self.currentModelId = modelId;
       logger.debug("Model updated to " + self.currentModelId);
-      self.currentModel.summary();   
+      // self.currentModel.compile({optimizer: decodedMsg.payload.optimizer, loss: 'categoricalCrossentropy'});  
+      self.currentModel.summary();
       return true; 
    // } else if (self.currentModelId > modelId) {
    //   logger.debug("Error: It was received a map task from a previous model.");
@@ -109,6 +112,7 @@ class TensorFlowData {
     
     //TODO learning rate?
     // let optimizer = tf.train.rmsprop(0.1);
+    // TODO: add this change to the example!!!! Moved to updateModel()
     self.currentModel.compile({optimizer: decodedMsg.payload.optimizer, loss: 'categoricalCrossentropy'});  
     const [xs, ys] = dataset.getDataBatch(decodedMsg.payload.batchSize, decodedMsg.payload.beginIndex);
     //TODO pass the loss as a parameter
@@ -120,18 +124,24 @@ class TensorFlowData {
 	  let jsonGrads = {};
 	  //let jsonGradShapes = {};
 	  const tensorNames = Object.keys(grads);
+          logger.debug("Tensors -> " + tensorNames);
+          const patt = /_[0-9]*$/i;
 	  tensorNames.forEach(tensorName => {
-		  //logger.debug("### tensorNames[" + tensorName + "]" + grads[tensorName]);
-		
-      //jsonGradShapes[tensorName] = grads[tensorName].shape;  //No necesitamos el shape
-		  jsonGrads[tensorName] = grads[tensorName].arraySync(); //grads[tensorName].flatten().arraySync();
-		  //jsonGrads[tensorName] = tf.tensor(jsonGrads[tensorName]);
+            let newTensorName =	 tensorName;
+            // Actualizamos el nombre del tensor para evitar problemas del nombre autogenerado por TF
+            let matched = tensorName.match(patt);
+            if(matched) newTensorName = tensorName.substring(0, tensorName.indexOf(matched));
+            logger.debug(tensorName + " -> " + newTensorName);
+            jsonGrads[newTensorName] = grads[tensorName].arraySync(); //grads[tensorName].flatten().arraySync();                  
 	  });
 	  //logger.debug(".............................jsonGrads = " + JSON.stringify(jsonGrads));
 	  //model.optimizer.applyGradients(jsonGrads);
     //result.shapes = jsonGradShapes;
     result.grads = jsonGrads;
     //TODO dispose!
+    xs.dispose();
+    ys.dispose();
+    tensorNames.forEach(tensorName => grads[tensorName].dispose() );
     return result;
   }
 
@@ -147,6 +157,7 @@ class TensorFlowData {
 
 
     await self.updateModel(decodedMsg, self);
+    self.currentModel.compile({optimizer: decodedMsg.payload.optimizer, loss: 'categoricalCrossentropy'}); 
 
     ///////////////////////////////////////////////////TESTING
     logger.debug("### decodedMsg = " + decodedMsg);
@@ -170,6 +181,9 @@ class TensorFlowData {
           tensorNames.forEach(tensorName => {
             for (let i = 0; i < vectorToReduce.length; i++) {
               if (i == 0) tensors[tensorName] = [];
+              logger.debug("tensorName" + tensorName);
+              logger.debug("i" + i); 
+              logger.debug(Object.keys(vectorToReduce[i].result.grads));
               tensors[tensorName].push(tf.tensor(vectorToReduce[i].result.grads[tensorName]));
             }
             tensors[tensorName] = tf.addN(tensors[tensorName]);
@@ -198,8 +212,8 @@ class TensorFlowData {
 
 
 (async () => {
-  const sampleLen = 32; // 1024;
-  const sampleStep = 8; // 256;
+  const sampleLen = 40; // 1024;
+  const sampleStep = 3; // 256;
   const textUrl = 'http://' + serverUrl + ':' + webdisPort + '/GET/' + taskName + '_text';
   // logger.debug("loading text...");
   //let textString = await JSDDB.getText(textUrl);
