@@ -5,7 +5,6 @@
 * Encola una serie de tareas de cálculo de gradiente y cómputo de un nuevo modelo.
 *********************************************************************************************************************/
 
-const {tf, tfjsIOHandler, data, tfjsCustomModel} = require('tfjs-helper');
 const wde = require('jsd-monitor');
 
 const JSDLogger = require('jsd-utils/jsd-logger');
@@ -21,13 +20,13 @@ const JSDDB = require('jsd-utils/jsd-db');
 
 //TODO poner esto en un fichero de configuración
 const local = true;
-const taskName = 'lstm_text_generation';
+const taskName = 'word_count';
 const queueName = taskName + '_queue';
 let amqpConnOptions = {};
 let webdisPort = 7379;
 if(local) {
   //connStr = wde.getAmqpConnectionStr('localhost');
-  webdisPort = 3001;
+  // webdisPort = 3001;
   amqpConnOptions.server = 'localhost';
   amqpConnOptions.port = null;
   modelUrl = 'http://localhost:' + webdisPort;
@@ -49,44 +48,20 @@ if(local) {
 
 
 (async () => {
-  //TODO batchSize, sampleLen y sampleStep debieran ser configurables
-  const batchSize = 5;
-  const sampleLen = 32; // 1024
-  const sampleStep = 8; // 256
-  // const textUrl = 'http://mallba3.lcc.uma.es/jamorell/deeplearning/dataset/el_quijote.txt'
-  const textUrl = modelUrl + '/GET/' + taskName + '_text';
-  const lstmLayerSizes = [50,50];
-
-
-  const textString = await JSDDB.getText(textUrl);  
-  // request.put(modelUrl + '/SET/' + taskName + '_text').form(textString);
-  
-  const dataset = new data.TextDataset(textString, sampleLen, sampleStep, false);
     
-  let model = await tfjsCustomModel.createLstmModel(lstmLayerSizes, sampleLen, dataset.charSet.length);
-  let urlSavedModel = modelUrl + "/SET/" + taskName +"_model_id_" + 1;
-  logger.debug("CURRENT MODEL ID " + modelUrl + '/SET/' + taskName + "_current_model_id");
-  await JSDDB.setText(modelUrl + '/SET/' + taskName + "_current_model_id", 0);
-  const saveResults = await model.save(tfjsIOHandler.webdisRequest(urlSavedModel)).catch(error => logger.debug(error));
-  //request.put(urlSavedModel + '_ok').form("OK");
-  
   // Generación del payload específico para los mappers
   mapPayloadFn = function(ix, mapIx, reduceIx) {
     let payload = {}
-    payload.getModelUrl = modelUrl + "/GET/" + taskName +"_model_id_" + reduceIx;    
-    payload.beginIndex = dataset.getNextBeginIndex();
-    payload.batchSize = batchSize;
-    payload.optimizer = 'rmsprop';
+    payload.getTextUrl = "http://www.emol.com";
     return payload;
   }
   
   // Generación del payload específico para los reducers
   reducePayloadFn = function(ix, mapIx, reduceIx) {
     let payload = {}
-    payload.optimizer = 'rmsprop';
-    payload.getModelUrl = modelUrl + "/GET/" + taskName +"_model_id_" + reduceIx;
+    payload.getResults = modelUrl + "/GET/" + taskName +"_count_" + reduceIx;
     let setId = reduceIx + 1;
-    payload.putModelUrl = modelUrl + "/SET/" + taskName +"_model_id_" + setId;
+    payload.setResults = modelUrl + "/GET/" + taskName +"_count_" + setId;
     return payload;
   }  
   
