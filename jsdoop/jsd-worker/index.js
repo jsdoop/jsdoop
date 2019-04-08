@@ -18,9 +18,26 @@ class Worker {
     this.user = user;
     this.pswd = pswd;
     this.queueName = queueName;
-    let ws = new SockJS(this.wsConnStr);
+    let connectionOptions =  {
+
+        "upgrade" : false,
+        'forceNew':true,
+        'allowUpgrades':false,
+    'pingInterval': 45000,
+    'pingTimeOut': 45000,
+        "force new connection" : true,
+        "reconnection": true,
+        "reconnectionDelay": 2000,                  //starts with 2 secs delay, then 4, 6, 8, until 60 where it stays forever until it reconnects
+        "reconnectionDelayMax" : 60000,             //1 minute maximum delay between connections
+        "reconnectionAttempts": "Infinity",         //to prevent dead clients, having the user to having to manually reconnect after a server restart.
+        "timeout" : 10000,                           //before connect_error and connect_timeout are emitted.
+        "transports" : ["websocket"]                //forces the transport to be only websocket. Server needs to be setup as well/
+    }
+
+    //let ws = new SockJS(this.wsConnStr, null, connectionOptions);
+    let ws = new WebSocket('ws://127.0.0.1:15674/ws'); 
     this.client = Stomp.over(ws);
-    this.client.heartbeat.outgoing = 5000;//0;
+    this.client.heartbeat.outgoing = 0;//0;
     this.client.heartbeat.incoming = 0;
     this.client.reconnect_delay = 3000;
 
