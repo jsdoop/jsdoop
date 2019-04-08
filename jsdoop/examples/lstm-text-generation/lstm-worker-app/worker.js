@@ -198,8 +198,8 @@ class TensorFlowData {
 
 
 (async () => {
-  const sampleLen = 32; // 1024;
-  const sampleStep = 8; // 256;
+  const sampleLen = 40;//32; // 1024;
+  const sampleStep = 3;//8; // 256;
   const textUrl = 'http://' + serverUrl + ':' + webdisPort + '/GET/' + taskName + '_text';
   // logger.debug("loading text...");
   //let textString = await JSDDB.getText(textUrl);

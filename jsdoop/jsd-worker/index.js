@@ -1,5 +1,10 @@
-const Stomp = require('stompjs');
+//const Stomp = require('stompjs');
+//import * as wsp from './stomp.js';
+const wsp = require("./stomp.js");
+
 const SockJS = require('sockjs-client');
+//const SockJSLib = require('./sockjs.js');
+
 
 const JSDLogger = require('jsd-utils/jsd-logger');
 const logger = JSDLogger.logger;
@@ -18,9 +23,26 @@ class Worker {
     this.user = user;
     this.pswd = pswd;
     this.queueName = queueName;
-    let ws = new SockJS(this.wsConnStr);
-    this.client = Stomp.over(ws);
-    this.client.heartbeat.outgoing = 5000;//0;
+
+    let connectionOptions =  {
+        "upgrade" : false,
+        'forceNew':true,
+        'allowUpgrades':false,
+    'pingInterval': 45000,
+    'pingTimeOut': 45000,
+        "force new connection" : true,
+        "reconnection": true,
+        "reconnectionDelay": 2000,                  //starts with 2 secs delay, then 4, 6, 8, until 60 where it stays forever until it reconnects
+        "reconnectionDelayMax" : 60000,             //1 minute maximum delay between connections
+        "reconnectionAttempts": "Infinity",         //to prevent dead clients, having the user to having to manually reconnect after a server restart.
+        "timeout" : 10000,                           //before connect_error and connect_timeout are emitted.
+        "transports" : ["websocket"]                //forces the transport to be only websocket. Server needs to be setup as well/
+    }
+
+    let ws = new SockJS(this.wsConnStr, null, connectionOptions);
+    //let ws = new SockJS(this.wsConnStr);
+    this.client = wsp.Stomp.over(ws);
+    this.client.heartbeat.outgoing = 0;//5000;//0;
     this.client.heartbeat.incoming = 0;
     this.client.reconnect_delay = 3000;
 
@@ -160,7 +182,7 @@ class Worker {
 
     let queueObject = self.client.subscribe(queueName, async (message) => {
       self.receive(queueName, message, self);
-      logger.debug("mypromise result = " + await mypromise(message, self));
+      logger.debug("mypromise result = " + await mypromise(message, self));     
     }, {ack: 'client', 'prefetch-count': prefetch});
     self.queuesObjects[queueName] = queueObject;
     logger.debug("Subscribing to " + queueName + " queueObject = " + JSON.stringify(queueObject));
@@ -177,10 +199,16 @@ class Worker {
       this.subscribe(this.queueName, this.procMessage, this);
     }
     let onError = (e) => {
-      logger.error("ERROR: Error connecting to " + this.wsConnStr + " -> " + e);
+      logger.error("ERROR: Error connecting to " + this.wsConnStr + " -> error = " + e  + " JSON.stringify(e) = " + JSON.stringify(e));
     }
     this.client.connect(this.user, this.pswd, onConnect, onError, '/');
   }
 }
 
 module.exports.Worker = Worker;
+
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+

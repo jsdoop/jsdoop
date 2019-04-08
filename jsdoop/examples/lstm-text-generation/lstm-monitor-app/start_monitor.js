@@ -51,8 +51,8 @@ if(local) {
 (async () => {
   //TODO batchSize, sampleLen y sampleStep debieran ser configurables
   const batchSize = 5;
-  const sampleLen = 32; // 1024
-  const sampleStep = 8; // 256
+  const sampleLen = 40;//32; // 1024
+  const sampleStep = 3;//8; // 256
   // const textUrl = 'http://mallba3.lcc.uma.es/jamorell/deeplearning/dataset/el_quijote.txt'
   const textUrl = modelUrl + '/GET/' + taskName + '_text';
   const lstmLayerSizes = [50,50];
