@@ -212,7 +212,7 @@ class TensorFlowData {
 
 
 (async () => {
-  const sampleLen = 40; // 1024;
+  const sampleLen = 100; // 1024;
   const sampleStep = 3; // 256;
   const textUrl = 'http://' + serverUrl + ':' + webdisPort + '/GET/' + taskName + '_text';
   // logger.debug("loading text...");
