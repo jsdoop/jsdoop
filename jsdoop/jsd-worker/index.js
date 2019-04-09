@@ -35,7 +35,7 @@ class Worker {
     }
 
     //let ws = new SockJS(this.wsConnStr, null, connectionOptions);
-    let ws = new WebSocket('ws://127.0.0.1:15674/ws'); 
+    let ws = new WebSocket('ws://mallba3.lcc.uma.es:15674/ws'); 
     this.client = Stomp.over(ws);
     this.client.heartbeat.outgoing = 0;//0;
     this.client.heartbeat.incoming = 0;
