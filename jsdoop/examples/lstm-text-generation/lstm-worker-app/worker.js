@@ -12,7 +12,7 @@ const JSDDB = require('jsd-utils/jsd-db');
 /*********************************************************************************************************************/
 
 const local = true;
-const taskName = 'lstm_text_generation';
+const taskName = 'condor_lstm_text_generation';
 const queueName = taskName + '_queue';
 let serverUrl;
 let port = 15674;
@@ -212,7 +212,7 @@ class TensorFlowData {
 
 
 (async () => {
-  const sampleLen = 100; // 1024;
+  const sampleLen = 40; // 1024;
   const sampleStep = 3; // 256;
   const textUrl = 'http://' + serverUrl + ':' + webdisPort + '/GET/' + taskName + '_text';
   // logger.debug("loading text...");
