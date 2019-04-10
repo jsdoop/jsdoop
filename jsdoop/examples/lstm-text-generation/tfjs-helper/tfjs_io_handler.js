@@ -23,7 +23,6 @@ class WebdisRequest {
       request.get(self.path, function(err, res, body) {
         if (body) {
           try {
-            console.log("WebdisRequest.load() body = " + body);
             let jsonBody = JSON.parse(body);
             jsonBody = JSON.parse(jsonBody.GET);                
             let modelTopology = jsonBody[0];
@@ -35,7 +34,6 @@ class WebdisRequest {
             resolve(body);
           }
         } else {
-          console.log("WebdisRequest.load() body is empty");	
           resolve(null);
         }
       });	
