@@ -1,6 +1,6 @@
 #!/bin/bash
 
-unzip lstm-worker-app.zip
+unzip -q lstm-worker-app.zip
 
 # Timeout (seconds).
 timeout="$1"

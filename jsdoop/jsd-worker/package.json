@@ -6,10 +6,11 @@
   "author": "Jose Angel Morell and Andres Camero",
   "license": "GPL-3.0",
   "dependencies": {
+    "jsd-utils": "link:../jsd-utils/",
     "sockjs": "^0.3.19",
     "sockjs-client": "^1.3.0",
     "stomp-websocket": "^2.3.4-next",
     "stompjs": "^2.3.3",
-    "jsd-utils": "link:../jsd-utils/"
+    "websocket": "^1.0.28"
   }
 }

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Copy the code
-cp -r ../../lstm-text-generation/* .
+cp -r ../lstm-text-generation/* .
 # Then, we update the test configuration (worker and monitor)
 # TODO update params in a config file (now the parameters are hard coded)
 # Get the dependencies
