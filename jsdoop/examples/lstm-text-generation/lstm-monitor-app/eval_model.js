@@ -34,7 +34,7 @@ if(local) {
   logger.debug(modelPath);
   const sampleLen = 40; 
   const sampleStep = 3;
-  const numValSamples = 200;
+  const numValSamples = 2048;
 
   const textUrl = 'http://' + serverUrl + ':' + webdisPort + '/GET/' + taskName + '_text';
   let textString = await JSDDB.getText(textUrl);
