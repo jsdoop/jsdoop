@@ -14,7 +14,7 @@ logger.verbosity = 5;
 /*********************************************************************************************************************/
 
 const local = true;
-const taskName = 'lstm_text_generation';
+const taskName = 'condor_lstm_text_generation';
 const queueName = taskName + '_queue';
 let serverUrl;
 let port = 15674;
