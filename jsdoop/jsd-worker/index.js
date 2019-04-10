@@ -1,7 +1,9 @@
 const Stomp = require('stompjs');
-const SockJS = require('sockjs-client');
-
+// const SockJS = require('sockjs-client');
+const WebSocketClient = require('websocket').w3cwebsocket;
 const JSDLogger = require('jsd-utils/jsd-logger');
+
+
 const logger = JSDLogger.logger;
 
 
@@ -9,18 +11,19 @@ const logger = JSDLogger.logger;
 * WORKER (JavaScript Client)
 */
 class Worker {
-  constructor(serverUrl, port, queueName, user, pswd, problemData) {
-    //this.mapFn = mapFn;
-    //this.reduceFn = reduceFn;
+  constructor(serverUrl, port, queueName, user, pswd, problemData, workerInfo=null) {
+    if(workerInfo) this.workerInfo = workerInfo;
+    logger.debug("Worker = " + this.workerInfo);
     this.problemData = problemData;
-    this.wsConnStr = 'http://' + serverUrl + ':' + port + '/stomp';
+    this.wsConnStr = 'ws://' + serverUrl + ':' + port + '/ws';
     logger.debug("Stomp URL = " + this.wsConnStr);
     this.user = user;
     this.pswd = pswd;
     this.queueName = queueName;
-    let ws = new SockJS(this.wsConnStr);
+    let ws = new WebSocketClient(this.wsConnStr);
     this.client = Stomp.over(ws);
-    this.client.heartbeat.outgoing = 5000;//0;
+    this.client.debug = null;
+    this.client.heartbeat.outgoing = 0;
     this.client.heartbeat.incoming = 0;
     this.client.reconnect_delay = 3000;
 
@@ -40,18 +43,10 @@ class Worker {
       self.subscribe(decoded.queueName + "_maps_results_"+ decoded.reduceId, async (reduceMessage) => {
         if (reduceMessage.body) {
           // TODO Chequear si el mensaje recibido es para mi o no, o si es un mensaje antiguo, etc. 
-          //const json = JSON.parse(reduceMessage.body); ;
           msgReceived.push(reduceMessage);
           logger.debug("total reduce received = " + msgReceived.length);
-          //reduceMessage.ack();
-          //return true; //Consumed msg
           if (msgReceived.length >= decoded.awaitId.length) { //TODO -> Esto es para probar
             resolve(msgReceived); //OUTER PROMISE
-            //self.unsubscribe(decoded.queueName + "_maps_results_"+ decoded.reduceId, self); // TODO ->¿puede estar el unsubscribe antes del resolve(msgReceived)? //TODO -> Unsubscribe da el error Message with id "T_sub-2@@session-XW1xr6xd--njwHP7cDn6-w@@6" has no subscription
-            //resolve(msgReceived.map(x => JSON.parse(x.body)));			//OUTER PROMISE
-            //logger.debug("<<<<<<<<<<<  volviendo del resolve");
-            //msgReceived.map(x => x.ack())
-            //logger.debug("<<<<<<<<<<<  acks");
           }
           return true;
         } else {
@@ -66,29 +61,55 @@ class Worker {
   }
 
   async procMap(undecodedMsg, decoded, self) {
+    let startDt = new Date().getTime();
     let mapResult = await self.problemData.mapFn(decoded, self.problemData);
+    let endDt = new Date().getTime();
     logger.debug("mapResult = " + mapResult);
-    let msgResult = {}
+    let stats = {};
+    stats.startDt = startDt;
+    stats.endDt = endDt;
+    stats.workerInfo = self.workerInfo;
+
+    let msgResult = {};
     msgResult.procId = decoded.procId;
     msgResult.result = mapResult;
-    //TODO Crear una cola para cada reduce decoded.queueName + "_maps_results_" + id
-    logger.debug("sendToQueue Map",msgResult, (decoded.queueName + "_maps_results_"+ decoded.reduceId));
+    msgResult.stats = stats;
+    logger.debug("sendToQueue Map", msgResult, (decoded.queueName + "_maps_results_"+ decoded.reduceId));
     self.sendToQueue(JSON.stringify(msgResult), decoded.queueName + "_maps_results_"+ decoded.reduceId);
     self.ack(undecodedMsg, self);
     return true;
   }
 
   async procReduce(undecodedMsg, decoded, self) {
+    let receivedDt = new Date().getTime();
     let results = await self.accumulatingReduce(decoded, self);  
     let accumulatedReduce = results.map(x => JSON.parse(x.body));
     logger.debug("AFTER ACCUMULATING REDUCE accumulatedReduce = " + accumulatedReduce);
     logger.debug("self.problemData = " + self.problemData);
+    let startDt = new Date().getTime();
     let reduceResult = await self.problemData.reduceFn(accumulatedReduce, decoded, self.problemData);
+    let endDt = new Date().getTime();
     if (reduceResult) {
       logger.debug("reduceResult TRUE " + reduceResult);
+      let stats = {};
+      stats.receivedDt = receivedDt;
+      stats.startDt = startDt;
+      stats.endDt = endDt;
+      stats.workerInfo = self.workerInfo;
+      stats.mapStats = []
+      // Rescatamos las estadísticas de los mappers
+      for(let i=0; i < accumulatedReduce.length; i++){
+        let tmp = {};
+        tmp.procId = accumulatedReduce[i].procId;
+        tmp.stats = accumulatedReduce[i].stats;
+        stats.mapStats.push(JSON.stringify(tmp));
+      }
+
       let msgResult = {}
       msgResult.procId = decoded.procId;
       msgResult.result = reduceResult;
+      msgResult.stats = stats;
+
       //TODO -> De momento solo hay 1 reduce
       //self.sendToQueue(JSON.stringify(msgResult), decoded.queueName + "_reduces_" + decoded.reduceId);	//TODO -> async? await?
       self.sendToQueue(JSON.stringify(msgResult), decoded.queueName + "_reduces_results");	//TODO -> async? await?      
@@ -104,6 +125,7 @@ class Worker {
   }
 
   async procMessage(undecodedMsg, self) {
+    logger.info("Message received (" + new Date().getTime() + ")" + undecodedMsg.body);
     const decoded = JSON.parse(undecodedMsg.body); 
     if( decoded.mapOrReduce == "map" ) {
       if(self.problemData.mapFn && typeof(self.problemData.mapFn) == 'function') {
@@ -160,8 +182,9 @@ class Worker {
 
     let queueObject = self.client.subscribe(queueName, async (message) => {
       self.receive(queueName, message, self);
-      logger.debug("mypromise result = " + await mypromise(message, self));
+      logger.debug("mypromise result = " + await mypromise(message, self));      
     }, {ack: 'client', 'prefetch-count': prefetch});
+    logger.info("###################################");
     self.queuesObjects[queueName] = queueObject;
     logger.debug("Subscribing to " + queueName + " queueObject = " + JSON.stringify(queueObject));
   }
@@ -179,7 +202,7 @@ class Worker {
     let onError = (e) => {
       logger.error("ERROR: Error connecting to " + this.wsConnStr + " -> " + e);
     }
-    this.client.connect(this.user, this.pswd, onConnect, onError, '/');
+    let mycon = this.client.connect(this.user, this.pswd, onConnect, onError, '/');
   }
 }
 
