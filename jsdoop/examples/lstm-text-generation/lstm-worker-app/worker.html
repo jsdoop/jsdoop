@@ -32,24 +32,154 @@
       width: 100px;
       margin: 10px;
     }
+    .included_html {
+      display: none;
+    }
+
+
   </style>
 </head>
 
 <body>
-  <div class="wde-example-container">
-    <section class='title-area'>
-      <h1>Worker</h1>
-    </section>
+  <div class="out-text-container">
+    <div class="text-container">
+      <section class='title-area'>
+        <h1>Worker</h1>
+      </section>
 
-    <section>
-      <p class='section-head'>Description</p>
-      <p>
-        This page is running a worker that consumes tasks from the master server.
-      </p>
-    </section>
+      <section class='description-area'>
+        <p>
+          This page is running a worker that consumes tasks from the master server.
+        </p>
+            
+      </section>
+    </div>
+  </div>
 
 
+
+
+
+  <div class="out-stats-container">
+    <div class="stats-container">
+        <link href="stats.html" rel="import" />
+        <span>Toggle to show/hide Stats.</span>
+        <div class="onoffswitch">
+            <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch" unchecked>
+            <label class="onoffswitch-label" for="myonoffswitch">
+                <span class="onoffswitch-inner"></span>
+                <span class="onoffswitch-switch"></span>
+            </label>
+        </div>
+    </div>
+  </div>
+<!--
+    <input type="checkbox" name="onoffswitch" unchecked>
+-->
+
+    <script>
+var doc = document.querySelector('link[rel="import"]').import;
+// Grab DOM from doc.html's document.
+var text = doc.querySelector('.included_html');
+document.body.appendChild(text.cloneNode(true))
+loadCharts();
+
+
+      let worker = new Worker("worker.js");
+
+
+      /*********************************************************************************************************************/
+      /* Parámetros de conexión
+      /* TODO: sacar de aquí
+      /*********************************************************************************************************************/
+
+      const local = true;
+      const taskName = 'lstm_text_generation';
+      const queueName = taskName + '_queue';
+      let serverUrl;
+      let port = 15674;
+      let user = 'worker';
+      let pswd = 'mypassword';
+      let webdisPort = 7379;
+      if(local) {
+        serverUrl = 'localhost';
+        user = 'guest';
+        pswd = 'guest';
+        webdisPort = 3001;
+      } else {
+        serverUrl = 'mallba3.lcc.uma.es';
+      }
+
+      /*********************************************************************************************************************/
+      /* LOADING STATS
+      /*********************************************************************************************************************/
+      async function getText(url) {
+        return new Promise((resolve, reject)=> {
+          var req = new XMLHttpRequest();
+          req.open('GET', url, true);
+          req.onreadystatechange = function (aEvt) {
+            if (req.readyState == 4) {
+               if(req.status == 200) {
+                resolve(req.responseText);
+               } else {
+                console.error("(browser worker.html)Error loading from url" + url + "\n");
+                reject("(browser worker.html)Error loading from url " + url + "\n");
+               }
+            }
+          };
+          req.send(null);
+        });
+      }
+
+      let showStats = false;
+      let stats = {};
+      let lastIdStats = 0;
+      let idStats = 0;
+
+      async function loadStats(){ 
+        console.log("loadStats()");
+        if (showStats) {
+          
+          idStats = await getText('http://' + serverUrl + ':' + webdisPort + '/GET/lstm_text_generation_stats_date');
+          if (idStats != lastIdStats) {
+            stats = await getText('http://' + serverUrl + ':' + webdisPort + '/GET/lstm_text_generation_stats_summary');
+            updateProcTimeChart(procTimeChart, JSON.parse(JSON.parse(stats).GET), true);
+            console.log("STATS --> " + stats);
+            lastIdStats = idStats;
+          } else {
+            console.log("Stats are up to date!!");      
+          }
+
+          setTimeout(function () {      
+            loadStats();
+          }, 3000);
+        } 
+      }
+
+
+      var checkbox = document.querySelector("input[name=onoffswitch]");
+      checkbox.addEventListener( 'change', async function () {
+          if(this.checked) {
+              document.getElementById("included_html").style.display = "block";
+              console.log("showing stats");
+              showStats = true;
+              await loadStats();
+          } else {  
+              document.getElementById("included_html").style.display = "none";
+              console.log("NOT showing stats");
+              showStats = false;
+          }
+      });
+
+    </script>
+
+<!--
     <script src="worker.js"></script>
+-->
+
+    <link rel="stylesheet" type="text/css" href="css/toggle.css">
+
+
   </div>
 
 </body>

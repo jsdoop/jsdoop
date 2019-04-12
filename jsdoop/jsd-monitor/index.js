@@ -102,6 +102,46 @@ async function enqueueTask(ch, queueName, numMaps, accumReduce, mapPayloadFn=nul
 module.exports.enqueueTask = enqueueTask;
 
 
+/**
+function bail(err) {
+  logger.error(err);
+  //process.exit(1);
+}
+**/
+
+// Consumer
+/**
+function consumer(conn) {
+  let ok = conn.createChannel(on_open);
+  function on_open(err, ch) {
+    if (err != null) bail(err);
+    ch.assertQueue(q);
+    ch.consume(q, function(msg) {
+      if (msg !== null) {
+        console.log(msg.content.toString());
+        ch.ack(msg);
+      }
+    });
+  }
+}
+**/
+async function consumer(ch, queue, callback) {
+    return new Promise((resolve, reject) => {
+      ch.consume(queue, async function(msg) {
+        if (msg !== null) {
+          let ok = await callback(msg.content.toString());
+          if (ok) ch.ack(msg);
+          else ch.nack(msg);
+          resolve();
+        }
+      });
+    });
+}
+module.exports.consumer = consumer;
+
+
+
+
 async function asyncDeleteQueue(q, ch) {
   return new Promise(function(resolve, reject) {
     logger.debug("Ready to delete " + q);    

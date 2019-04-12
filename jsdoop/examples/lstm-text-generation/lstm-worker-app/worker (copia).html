@@ -1,0 +1,133 @@
+<html>
+
+<head>
+  <title>Web-Distributed Computation: LSTM text generation worker</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    .wde-example-container {
+      width: calc(100vw - 600px);
+    }
+
+    canvas {
+      width: 100px;
+    }
+
+    .pred {
+      font-size: 30px;
+      width: 100px;
+    }
+
+    .pred-correct {
+      background-color: #00cf00;
+    }
+
+    .pred-incorrect {
+      background-color: red;
+    }
+
+    .pred-container {
+      display: inline-block;
+      width: 100px;
+      margin: 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wde-example-container">
+    <section class='title-area'>
+      <h1>Worker</h1>
+    </section>
+
+    <section>
+      <p class='section-head'>Description</p>
+      <p>
+        This page is running a worker that consumes tasks from the master server.
+      </p>
+    </section>
+
+
+<!--
+    <div class="onoffswitch">
+        <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch" unchecked>
+        <label class="onoffswitch-label" for="myonoffswitch">
+            <span class="onoffswitch-inner"></span>
+            <span class="onoffswitch-switch"></span>
+        </label>
+    </div>
+-->
+
+    <input type="checkbox" name="onoffswitch" unchecked>
+
+
+
+
+    <script> 
+/**
+      let worker = new Worker("worker.js");
+
+      /*********************************************************************************************************************/
+      /* LOADING STATS
+      /*********************************************************************************************************************/
+      async function getText(url) {
+        console.log("%%%%%%URl = " + url);
+        return new Promise((resolve, reject)=> {
+          var req = new XMLHttpRequest();
+          req.open('GET', url, true);
+          req.onreadystatechange = function (aEvt) {
+            if (req.readyState == 4) {
+               if(req.status == 200) {
+                console.log("%%%%%%%req.responseText = " + req.responseText);
+                resolve(req.responseText);
+               } else {
+                console.log("Error loading page\n");
+                reject("Error loading page\n");
+               }
+            }
+          };
+          req.send(null);
+        });
+      }
+
+      let showStats = false;
+      let stats = {};
+
+      async function loadStats(){
+        if (showStats) {
+//          stats = await getText(taskName + "_stats");
+          //stats = await getText("lstm_text_generation_stats");
+          stats = await getText('http://localhost:3001/GET/lstm_text_generation_stats');
+          
+          console.log("STATS --> " + JSON.stringify(stats));
+          setTimeout(3000, function () {loadStats()});
+        }
+      }
+
+
+      var checkbox = document.querySelector("input[name=onoffswitch]");
+      checkbox.addEventListener( 'change', async function () {
+          if(this.checked) {
+              console.log("showing stats");
+              showStats = true;
+              await loadStats();
+          } else {  
+              console.log("NOT showing stats");
+              showStats = false;
+          }
+      });
+**/
+    </script>
+<!--
+    <script src="worker.js"></script>
+-->
+<!--
+    <link rel="stylesheet" type="text/css" href="css/toggle.css">
+-->
+
+  </div>
+
+</body>
+
+</html>

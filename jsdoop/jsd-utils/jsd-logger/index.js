@@ -6,7 +6,7 @@ class JSDLogger {
     this.infoLevel = 5;
     this.debugLevel = 10;
 
-    this.verbosity = 5;
+    this.verbosity = 10;
     this._id = "";
   }
 

@@ -1,0 +1,283 @@
+<div class = "included_html" id = "included_html">
+	<script async="" src="./js/analytics.js"></script><script src="./js/Chart.min.js"></script>
+	<script src="./js/utils.js"></script>
+	<style>
+	canvas {
+		-moz-user-select: none;
+		-webkit-user-select: none;
+		-ms-user-select: none;
+	}
+	</style>
+<style type="text/css">/* Chart.js */
+@keyframes chartjs-render-animation{from{opacity:.99}to{opacity:1}}.chartjs-render-monitor{animation:chartjs-render-animation 1ms}.chartjs-size-monitor,.chartjs-size-monitor-expand,.chartjs-size-monitor-shrink{position:absolute;direction:ltr;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1}.chartjs-size-monitor-expand>div{position:absolute;width:1000000px;height:1000000px;left:0;top:0}.chartjs-size-monitor-shrink>div{position:absolute;width:200%;height:200%;left:0;top:0}</style>
+
+
+	<div style="width:75%;"><div class="chartjs-size-monitor"><div class="chartjs-size-monitor-expand"><div class=""></div></div><div class="chartjs-size-monitor-shrink"><div class=""></div></div></div>
+		<canvas id="canvas" style="display: block; width: 976px; height: 488px;" width="976" height="488" class="chartjs-render-monitor"></canvas>
+	</div>
+
+
+
+
+
+
+
+	<script>
+let maxElementsInChart = 100; //Cuando se pasa del límite se eliminan algunos puntos intermedios.
+let removeEachNth = 30;
+let procTimeChart;
+
+
+
+
+
+function updateProcTimeChart(chart, statsSummary, mappersOrReducers) {
+  console.log("!!!!!!!! " + mappersOrReducers);
+  if (mappersOrReducers) mappersOrReducers = "mappers";
+  else mappersOrReducers = "reducers";
+
+  console.log("!!!!!!!!# " + mappersOrReducers);
+
+  if (!statsSummary[mappersOrReducers]["avgProcTime"]) return;
+
+  let newDate = new Date(statsSummary.timeStamp);
+  chart.data.labels.push(newDate);
+
+ 
+    //TESTING
+    console.log("!!!!!!!!! chart.data.labels.length = " + chart.data.labels.length);
+    console.log("!!!!!!!!! chart.data.labels = " + chart.data.labels);
+
+    console.log("!!!!!!!!! statsSummary = " + statsSummary);
+    console.log("!!!!!!!!! statsSummary[" + mappersOrReducers + "] = " + statsSummary[mappersOrReducers]);
+    console.log("!!!!!!!!! statsSummary.timeStamp = " + statsSummary.timeStamp);
+
+    console.log("!!!!!!!!! chart.data.datasets[0].data = " + JSON.stringify(chart.data.datasets[0].data));
+    console.log("!!!!!!!!! chart.data.datasets[1].data = " + JSON.stringify(chart.data.datasets[1].data));
+
+    console.log("!!!!!!!!! chart.data.datasets[0].data.length = " + chart.data.datasets[0].data.length);
+    console.log("!!!!!!!!! chart.data.datasets[1].data.length = " + chart.data.datasets[1].data.length);
+    console.log("!!!!!!!!! chart.data.datasets[2].data.length = " + chart.data.datasets[2].data.length);
+    console.log("!!!!!!!!! --------------------------------------------");
+   
+
+  chart.data.datasets[0].data.push({x: newDate, y: statsSummary[mappersOrReducers]["maxProcTime"] / 1000} );
+
+  let avgSeconds = statsSummary[mappersOrReducers]["avgProcTime"] / 1000;
+  let sdSeconds = statsSummary[mappersOrReducers]["sdProcTime"] / 1000;
+  chart.data.datasets[1].data.push({x: newDate, y: avgSeconds + sdSeconds} ); 
+  chart.data.datasets[2].data.push({x: newDate, y: avgSeconds} ); 
+  chart.data.datasets[3].data.push({x: newDate, y: avgSeconds - sdSeconds } ); 
+
+  chart.data.datasets[4].data.push({x: newDate, y: statsSummary[mappersOrReducers]["minProcTime"] / 1000} );  
+
+  //Removing 1 label that is created automatically. To get the same number of elements in all arrays.
+  if (chart.data.labels.length > chart.data.datasets[0].data.length) chart.data.labels.shift();
+
+  if (chart.data.labels.length > maxElementsInChart) {
+    for (let i = chart.data.labels.length - 2; i > 0; i--) { //Remove each nth element. Do not remove first and last.
+      (i + 1) % removeEachNth === 0 && chart.data.labels.splice(i, 1) && chart.data.datasets[0].data.splice(i, 1) && chart.data.datasets[1].data.splice(i, 1) && chart.data.datasets[2].data.splice(i, 1) && chart.data.datasets[3].data.splice(i, 1) && chart.data.datasets[4].data.splice(i, 1);
+    }
+  }
+
+  window.myLine.update();
+}
+
+
+function loadCharts() {
+//https://stackoverflow.com/questions/41467923/chart-js-fill-between-two-lines
+///////////////////////////////////////////////////////
+    var fillBetweenLinesPlugin = {
+    afterDatasetsDraw: function (chart) {
+        var ctx = chart.chart.ctx;
+        var xaxis = chart.scales['x-axis-0'];
+        var yaxis = chart.scales['y-axis-0'];
+        var datasets = chart.data.datasets;
+        ctx.save();
+
+        for (var d = 0; d < datasets.length; d++) {
+            var dataset = datasets[d];
+            if (dataset.fillBetweenSet == undefined) {
+                continue;
+            }
+
+            // get meta for both data sets
+            var meta1 = chart.getDatasetMeta(d);
+            var meta2 = chart.getDatasetMeta(dataset.fillBetweenSet);
+
+            // do not draw fill if one of the datasets is hidden
+            if (meta1.hidden || meta2.hidden) continue;
+
+            // create fill areas in pairs
+            for (var p = 0; p < meta1.data.length-1;p++) {
+                // if null skip
+              if (dataset.data[p] == null || dataset.data[p+1] == null) continue;
+
+              ctx.beginPath();
+
+              // trace line 1
+              var curr = meta1.data[p];
+              var next = meta1.data[p+1];
+              ctx.moveTo(curr._view.x, curr._view.y);
+              ctx.lineTo(curr._view.x, curr._view.y);
+              if (curr._view.steppedLine === true) {
+                ctx.lineTo(next._view.x, curr._view.y);
+                ctx.lineTo(next._view.x, next._view.y);
+              }
+              else if (next._view.tension === 0) {
+                ctx.lineTo(next._view.x, next._view.y);
+              }
+              else {
+                  ctx.bezierCurveTo(
+                    curr._view.controlPointNextX,
+                    curr._view.controlPointNextY,
+                    next._view.controlPointPreviousX,
+                    next._view.controlPointPreviousY,
+                    next._view.x,
+                    next._view.y
+                  );
+                            }
+
+              // connect dataset1 to dataset2
+              var curr = meta2.data[p+1];
+              var next = meta2.data[p];
+              ctx.lineTo(curr._view.x, curr._view.y);
+
+              // trace BACKWORDS set2 to complete the box
+              if (curr._view.steppedLine === true) {
+                ctx.lineTo(curr._view.x, next._view.y);
+                ctx.lineTo(next._view.x, next._view.y);
+              }
+              else if (next._view.tension === 0) {
+                ctx.lineTo(next._view.x, next._view.y);
+              }
+              else {
+                // reverse bezier
+                ctx.bezierCurveTo(
+                  curr._view.controlPointPreviousX,
+                  curr._view.controlPointPreviousY,
+                  next._view.controlPointNextX,
+                  next._view.controlPointNextY,
+                  next._view.x,
+                  next._view.y
+                );
+              }
+
+                            // close the loop and fill with shading
+              ctx.closePath();
+              ctx.fillStyle = dataset.fillBetweenColor || "rgba(0,0,0,0.1)";
+              ctx.fill();
+            } // end for p loop
+        }
+    } // end afterDatasetsDraw
+}; // end fillBetweenLinesPlugin
+
+Chart.pluginService.register(fillBetweenLinesPlugin);
+//////////////////////////////////////////////////////
+
+
+
+
+
+	procTimeChart = {
+		type: 'line',
+		data: {
+      labels: [],
+			datasets: [{
+				label: 'Max Time (s)',
+				backgroundColor: window.chartColors.red,
+				borderColor: window.chartColors.red,
+				fill: false,
+        tension: 0,
+				data: [
+
+				],
+			}, 
+      {
+				label: 'Mean Time + SD (s)',
+				backgroundColor: window.chartColors.gray,
+				borderColor: window.chartColors.gray,
+				fill: false,
+        tension: 0,
+        fillBetweenSet: 1,
+        fillBetweenColor: "rgba(0,0,255, 0.2)",
+				data: [
+
+				],
+        borderDash: [10,5]
+			},
+      {
+				label: 'Mean Time (s)',
+				backgroundColor: window.chartColors.blue,
+				borderColor: window.chartColors.blue,
+				fill: false,
+        tension: 0,
+        fillBetweenSet: 1,
+        //fillBetweenColor: "rgba(255,0,0, 0.2)",
+				data: [
+
+				]
+			},
+      {
+				label: 'Mean Time - SD (s)',
+				backgroundColor: window.chartColors.gray,
+				borderColor: window.chartColors.gray,
+				fill: false,
+        tension: 0,
+        fillBetweenSet: 1,
+        fillBetweenColor: "rgba(0,0,255, 0.2)",
+				data: [
+
+				],
+        borderDash: [10,5]
+			},
+      {
+				label: 'Min Time (s)',
+				backgroundColor: window.chartColors.green,
+				borderColor: window.chartColors.green,
+				fill: false,
+        tension: 0,
+				data: [
+
+				],
+			}
+      ]
+		},
+		options: {
+      cubicInterpolationMode: 'default',
+      bezierCurve: false,
+      lineTension: 0,
+			responsive: true,
+			title: {
+				display: true,
+				text: 'Statistics for processing time of a task for all volunteer devices.'
+			},
+			scales: {
+          xAxes: [
+            { labelString: "Date", display: false, position: 'top', barPercentage: 1.0, categoryPercentage: 0.5 }
+            //,
+            //{ type: 'time', time: { format: "HH:MM:SS"} }          
+          ] 
+        ,
+				yAxes: [{
+          labelString: "Time (s)",
+					display: true,
+          ticks: {
+            beginAtZero: true
+          }          
+					//type: 'logarithmic',
+				}]
+			}
+		}
+	};
+
+	window.onload = function() {
+		var ctx = document.getElementById('canvas').getContext('2d');
+		window.myLine = new Chart(ctx, procTimeChart);
+	};
+
+
+}
+	</script>
+</div>
+
