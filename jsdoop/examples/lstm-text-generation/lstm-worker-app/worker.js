@@ -5,7 +5,7 @@ const JSDDB = require('jsd-utils/jsd-db');
 
 
 const logger = JSDLogger.logger;
-logger.verbosity = 5;
+//logger.verbosity = 5;
 
 
 /*********************************************************************************************************************/
@@ -14,7 +14,7 @@ logger.verbosity = 5;
 /*********************************************************************************************************************/
 
 const local = true;
-const taskName = 'condor_lstm_text_generation';
+const taskName = 'lstm_text_generation';
 const queueName = taskName + '_queue';
 let serverUrl;
 let port = 15674;
@@ -43,26 +43,13 @@ class TensorFlowData {
       this.currentModel = null;
   }
 
-  async retryUntilLoadModel(modelUrl) {
-    logger.debug("Loading model -> " + modelUrl);
-    //TODO Se debe comprobar que el resultado de modelUrl sea distinto de nulo, luego se carga
-    let model = await tfjsCustomModel.loadCustomModel(tfjsIOHandler.webdisRequest(modelUrl));
-    while (!model) {
-      logger.debug("Model not found -> " + modelUrl);
-      logger.debug("Retrying loading the model -> " + modelUrl);
-      model = await tfjsCustomModel.loadCustomModel(tfjsIOHandler.webdisRequest(modelUrl));
-    }
-    logger.debug("Loaded model -> " + modelUrl + " -> " + model);
-    return model;
-  }
-
-
   async updateModel(decodedMsg, self) {
     let modelId = decodedMsg.payload.getModelUrl;
     modelId = modelId.substring(modelId.indexOf(taskName +"_model_id_") + (taskName +"_model_id_").length, modelId.length);
     if (self.currentModelId != modelId) {
       logger.debug("Model is outdated. " + self.currentModelId + " < " + modelId);
-      self.currentModel = await self.retryUntilLoadModel(decodedMsg.payload.getModelUrl);
+      //self.currentModel = await self.retryUntilLoadModel(decodedMsg.payload.getModelUrl);
+      self.currentModel = await tf.loadLayersModel(tfjsIOHandler.webdisRequest(decodedMsg.payload.getModelUrl));
       self.currentModelId = modelId;
       logger.debug("Model updated to " + self.currentModelId);
       self.currentModel.summary();
@@ -143,8 +130,18 @@ class TensorFlowData {
         });
         logger.debug("MODEL = " + self.currentModel);
         logger.debug("saving model on " + decodedMsg.payload.putModelUrl);
-        await JSDDB.setText('http://' + serverUrl + ':' + webdisPort + '/SET/' + taskName + "_current_model_id", self.currentModelId);
-        await self.currentModel.save(tfjsIOHandler.webdisRequest(decodedMsg.payload.putModelUrl)).catch(error => logger.debug("ERROR SAVING MODEL " + error));
+        let savedModel = false;
+        while (!savedModel) {
+          try {
+            await self.currentModel.save(tfjsIOHandler.webdisRequest(decodedMsg.payload.putModelUrl));
+            savedModel = true;
+          } catch (e) {
+            logger.error("Error saving model: " + e + " " + decodedMsg.payload.putModelUrl);
+          }
+          //await self.currentModel.save(tfjsIOHandler.webdisRequest(decodedMsg.payload.putModelUrl)).catch(error => 
+          //  logger.debug("ERROR SAVING MODEL " + error); 
+          //);
+        }
         logger.info("Reduce end (" + new Date().getTime()+")");
         return true; //"TRUE reduce completed"
     } else {
@@ -178,3 +175,8 @@ class TensorFlowData {
   let worker = new wde.Worker(serverUrl, port, queueName, user, pswd, problemData, workerInfo);
   worker.start();
 })();
+
+
+
+
+
