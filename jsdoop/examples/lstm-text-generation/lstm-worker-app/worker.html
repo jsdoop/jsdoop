@@ -63,8 +63,8 @@
   <div class="out-stats-container">
     <div class="stats-container">
         <input type="text" id="tasksSolvedPerSecond" readonly>
-        <link href="stats.html" rel="import" />
-        <link href="percentage.html" rel="import" />
+        <link href="./stats.html" rel="import" />
+        <link href="./percentage.html" rel="import" />
         <span>Toggle to show/hide Stats.</span>
         <div class="onoffswitch">
             <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch" unchecked>
@@ -108,7 +108,7 @@ window.onload = function() {
 //loadChartPercentage();
 
 
-      let worker = new Worker("worker.js");
+      let worker = new Worker("./worker.js");
 
 
       /*********************************************************************************************************************/
@@ -164,9 +164,9 @@ window.onload = function() {
         console.log("loadStats()");
         if (showStats) {
           
-          idStats = await getText('http://' + serverUrl + ':' + webdisPort + '/GET/lstm_text_generation_stats_date');
+          idStats = await getText('http://' + serverUrl + ':' + webdisPort + '/GET/' + taskName + '_stats_date');
           if (idStats != lastIdStats) {
-            stats = await getText('http://' + serverUrl + ':' + webdisPort + '/GET/lstm_text_generation_stats_summary');
+            stats = await getText('http://' + serverUrl + ':' + webdisPort + '/GET/' + taskName + '_stats_summary');
             if (stats) {
               let statsJson = JSON.parse(stats).GET;
               if (statsJson) {
@@ -255,7 +255,7 @@ window.onload = function() {
     <script src="worker.js"></script>
 -->
 
-    <link rel="stylesheet" type="text/css" href="css/toggle.css">
+    <link rel="stylesheet" type="text/css" href="./css/toggle.css">
 
 
   </div>
