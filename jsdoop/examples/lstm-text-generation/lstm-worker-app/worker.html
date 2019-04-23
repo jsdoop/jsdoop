@@ -62,7 +62,9 @@
 
   <div class="out-stats-container">
     <div class="stats-container">
+        <input type="text" id="tasksSolvedPerSecond" readonly>
         <link href="stats.html" rel="import" />
+        <link href="percentage.html" rel="import" />
         <span>Toggle to show/hide Stats.</span>
         <div class="onoffswitch">
             <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch" unchecked>
@@ -78,11 +80,32 @@
 -->
 
     <script>
-var doc = document.querySelector('link[rel="import"]').import;
+var charts = [];
+
+
+let toImportAll = document.querySelectorAll('link[rel="import"]');//.import;
 // Grab DOM from doc.html's document.
-var text = doc.querySelector('.included_html');
-document.body.appendChild(text.cloneNode(true))
-loadCharts();
+let toImport;
+let includedHtml;
+for (let i = 0; i < toImportAll.length; i++) {
+  toImport = toImportAll[i].import;
+  includedHtml = toImport.querySelector('.included_html' + i);
+  document.body.appendChild(includedHtml.cloneNode(true))
+}
+
+
+window.onload = function() {
+  charts.push(statsChart);
+  charts.push(percentageChart);
+
+  for (let i = 0; i < charts.length; i++) {
+    charts[i].load();
+  }
+}
+
+
+//loadCharts();
+//loadChartPercentage();
 
 
       let worker = new Worker("worker.js");
@@ -137,15 +160,40 @@ loadCharts();
       let idStats = 0;
 
       async function loadStats(){ 
+        
         console.log("loadStats()");
         if (showStats) {
           
           idStats = await getText('http://' + serverUrl + ':' + webdisPort + '/GET/lstm_text_generation_stats_date');
           if (idStats != lastIdStats) {
             stats = await getText('http://' + serverUrl + ':' + webdisPort + '/GET/lstm_text_generation_stats_summary');
-            updateProcTimeChart(procTimeChart, JSON.parse(JSON.parse(stats).GET), true);
-            console.log("STATS --> " + stats);
-            lastIdStats = idStats;
+            if (stats) {
+              let statsJson = JSON.parse(stats).GET;
+              if (statsJson) {
+                  statsJson = JSON.parse(statsJson);
+              } else {
+                setTimeout(function () {      
+                  loadStats();
+                }, 3000);
+                return;
+              } 
+              //let statsJson = JSON.parse(JSON.parse(stats).GET);
+              let inputSpeed = document.getElementById("tasksSolvedPerSecond");
+              inputSpeed.value = statsJson.taskSolvedPerSecond;
+              //updateProcTimeChart(procTimeChart, statsJson, true);
+              //updateTasksPerSecondChart(procTimeChart, statsJson);
+              for (let i = 0; i < charts.length; i++) {
+                charts[i].update(statsJson);
+              }
+
+
+              console.log("STATS --> " + stats);
+              console.log("JSON.stringify(stats) --> " + JSON.stringify(stats));
+              lastIdStats = idStats;
+            } else {
+              console.log("Empty Stats!!");   
+            }
+
           } else {
             console.log("Stats are up to date!!");      
           }
@@ -160,16 +208,46 @@ loadCharts();
       var checkbox = document.querySelector("input[name=onoffswitch]");
       checkbox.addEventListener( 'change', async function () {
           if(this.checked) {
-              document.getElementById("included_html").style.display = "block";
+              let elements = document.getElementsByClassName("included_html");
+              if (elements) {
+                for (let i = 0; i < elements.length; i++) {
+                  elements[i].style.display = "block";
+                }        
+              }
+              
+              
               console.log("showing stats");
               showStats = true;
               await loadStats();
           } else {  
-              document.getElementById("included_html").style.display = "none";
+              let elements = document.getElementsByClassName("included_html");
+              if (elements) {
+                for (let i = 0; i < elements.length; i++) {
+                  elements[i].style.display = "none";
+                }        
+              }
+              //document.getElementById("included_html").style.display = "none";
               console.log("NOT showing stats");
               showStats = false;
           }
       });
+
+
+	  //window.onload = function() {
+
+/**
+    document.body.onload = function() {
+       //initStatsChart();
+       //initPercentageChart();
+        
+        charts.push(statsChart);
+        //charts.push(percentageChart);
+        for (let i = 0; i < charts.length; i++) {
+        //  charts[i].init();
+            charts[i].load();
+        }
+    }
+**/
 
     </script>
 

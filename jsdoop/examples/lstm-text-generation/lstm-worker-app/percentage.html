@@ -1,11 +1,12 @@
-<div class = "included_html" id = "included_html">
+<div class = "included_html included_html1" id = "included_html1">
 	<script async="" src="./js/analytics.js"></script><script src="./js/Chart.min.js"></script>
 	<script src="./js/utils.js"></script>
 	<style>
-	canvas {
+	.canvas {
 		-moz-user-select: none;
 		-webkit-user-select: none;
 		-ms-user-select: none;
+    width:100px;
 	}
 	</style>
 <style type="text/css">/* Chart.js */
@@ -13,7 +14,7 @@
 
 
 	<div style="width:75%;"><div class="chartjs-size-monitor"><div class="chartjs-size-monitor-expand"><div class=""></div></div><div class="chartjs-size-monitor-shrink"><div class=""></div></div></div>
-		<canvas id="canvas" style="display: block; width: 976px; height: 488px;" width="976" height="488" class="chartjs-render-monitor"></canvas>
+		<canvas class ="canvas" id="canvas_percentage" style="display: block; width: 976px; height: 488px;" width="976" height="488" class="chartjs-render-monitor"></canvas>
 	</div>
 
 
@@ -23,227 +24,70 @@
 
 
 	<script>
+let percentageChart = {};
+
 
 (() => {
 
+
 let maxElementsInChart = 100; //Cuando se pasa del límite se eliminan algunos puntos intermedios.
 let removeEachNth = 30;
-let procTimeChart;
 
+percentageChart.update = function (statsSummary) {
 
+  if (!statsSummary || !statsSummary.taskSolvedPerSecond) return;
 
-
-
-function updateProcTimeChart(chart, statsSummary, mappersOrReducers) {
-  console.log("!!!!!!!! " + mappersOrReducers);
-  if (mappersOrReducers) mappersOrReducers = "mappers";
-  else mappersOrReducers = "reducers";
-
-  console.log("!!!!!!!!# " + mappersOrReducers);
-
-  if (!statsSummary[mappersOrReducers]["avgProcTime"]) return;
+  let chart = percentageChart.chart;  
 
   let newDate = new Date(statsSummary.timeStamp);
   chart.data.labels.push(newDate);
+  
 
- 
-    //TESTING
-    console.log("!!!!!!!!! chart.data.labels.length = " + chart.data.labels.length);
-    console.log("!!!!!!!!! chart.data.labels = " + chart.data.labels);
-
-    console.log("!!!!!!!!! statsSummary = " + statsSummary);
-    console.log("!!!!!!!!! statsSummary[" + mappersOrReducers + "] = " + statsSummary[mappersOrReducers]);
-    console.log("!!!!!!!!! statsSummary.timeStamp = " + statsSummary.timeStamp);
-
-    console.log("!!!!!!!!! chart.data.datasets[0].data = " + JSON.stringify(chart.data.datasets[0].data));
-    console.log("!!!!!!!!! chart.data.datasets[1].data = " + JSON.stringify(chart.data.datasets[1].data));
-
-    console.log("!!!!!!!!! chart.data.datasets[0].data.length = " + chart.data.datasets[0].data.length);
-    console.log("!!!!!!!!! chart.data.datasets[1].data.length = " + chart.data.datasets[1].data.length);
-    console.log("!!!!!!!!! chart.data.datasets[2].data.length = " + chart.data.datasets[2].data.length);
-    console.log("!!!!!!!!! --------------------------------------------");
-   
-
-  chart.data.datasets[0].data.push({x: newDate, y: statsSummary[mappersOrReducers]["maxProcTime"] / 1000} );
-
-  let avgSeconds = statsSummary[mappersOrReducers]["avgProcTime"] / 1000;
-  let sdSeconds = statsSummary[mappersOrReducers]["sdProcTime"] / 1000;
-  chart.data.datasets[1].data.push({x: newDate, y: avgSeconds + sdSeconds} ); 
-  chart.data.datasets[2].data.push({x: newDate, y: avgSeconds} ); 
-  chart.data.datasets[3].data.push({x: newDate, y: avgSeconds - sdSeconds } ); 
-
-  chart.data.datasets[4].data.push({x: newDate, y: statsSummary[mappersOrReducers]["minProcTime"] / 1000} );  
+  chart.data.datasets[0].data.push({x: newDate, y: statsSummary.taskSolvedPerSecond });
+  chart.data.datasets[1].data.push({x: newDate, y: statsSummary.nWorkers });
 
   //Removing 1 label that is created automatically. To get the same number of elements in all arrays.
   if (chart.data.labels.length > chart.data.datasets[0].data.length) chart.data.labels.shift();
 
   if (chart.data.labels.length > maxElementsInChart) {
     for (let i = chart.data.labels.length - 2; i > 0; i--) { //Remove each nth element. Do not remove first and last.
-      (i + 1) % removeEachNth === 0 && chart.data.labels.splice(i, 1) && chart.data.datasets[0].data.splice(i, 1) && chart.data.datasets[1].data.splice(i, 1) && chart.data.datasets[2].data.splice(i, 1) && chart.data.datasets[3].data.splice(i, 1) && chart.data.datasets[4].data.splice(i, 1);
+      (i + 1) % removeEachNth === 0 && chart.data.labels.splice(i, 1) && chart.data.datasets[0].data.splice(i, 1) && chart.data.datasets[1].data.splice(i, 1);
     }
   }
 
-  window.myLine.update();
+  window.tasksPerSecondChart.update();
 }
 
 
-function loadCharts() {
-//https://stackoverflow.com/questions/41467923/chart-js-fill-between-two-lines
-///////////////////////////////////////////////////////
-    var fillBetweenLinesPlugin = {
-    afterDatasetsDraw: function (chart) {
-        var ctx = chart.chart.ctx;
-        var xaxis = chart.scales['x-axis-0'];
-        var yaxis = chart.scales['y-axis-0'];
-        var datasets = chart.data.datasets;
-        ctx.save();
-
-        for (var d = 0; d < datasets.length; d++) {
-            var dataset = datasets[d];
-            if (dataset.fillBetweenSet == undefined) {
-                continue;
-            }
-
-            // get meta for both data sets
-            var meta1 = chart.getDatasetMeta(d);
-            var meta2 = chart.getDatasetMeta(dataset.fillBetweenSet);
-
-            // do not draw fill if one of the datasets is hidden
-            if (meta1.hidden || meta2.hidden) continue;
-
-            // create fill areas in pairs
-            for (var p = 0; p < meta1.data.length-1;p++) {
-                // if null skip
-              if (dataset.data[p] == null || dataset.data[p+1] == null) continue;
-
-              ctx.beginPath();
-
-              // trace line 1
-              var curr = meta1.data[p];
-              var next = meta1.data[p+1];
-              ctx.moveTo(curr._view.x, curr._view.y);
-              ctx.lineTo(curr._view.x, curr._view.y);
-              if (curr._view.steppedLine === true) {
-                ctx.lineTo(next._view.x, curr._view.y);
-                ctx.lineTo(next._view.x, next._view.y);
-              }
-              else if (next._view.tension === 0) {
-                ctx.lineTo(next._view.x, next._view.y);
-              }
-              else {
-                  ctx.bezierCurveTo(
-                    curr._view.controlPointNextX,
-                    curr._view.controlPointNextY,
-                    next._view.controlPointPreviousX,
-                    next._view.controlPointPreviousY,
-                    next._view.x,
-                    next._view.y
-                  );
-                            }
-
-              // connect dataset1 to dataset2
-              var curr = meta2.data[p+1];
-              var next = meta2.data[p];
-              ctx.lineTo(curr._view.x, curr._view.y);
-
-              // trace BACKWORDS set2 to complete the box
-              if (curr._view.steppedLine === true) {
-                ctx.lineTo(curr._view.x, next._view.y);
-                ctx.lineTo(next._view.x, next._view.y);
-              }
-              else if (next._view.tension === 0) {
-                ctx.lineTo(next._view.x, next._view.y);
-              }
-              else {
-                // reverse bezier
-                ctx.bezierCurveTo(
-                  curr._view.controlPointPreviousX,
-                  curr._view.controlPointPreviousY,
-                  next._view.controlPointNextX,
-                  next._view.controlPointNextY,
-                  next._view.x,
-                  next._view.y
-                );
-              }
-
-                            // close the loop and fill with shading
-              ctx.closePath();
-              ctx.fillStyle = dataset.fillBetweenColor || "rgba(0,0,0,0.1)";
-              ctx.fill();
-            } // end for p loop
-        }
-    } // end afterDatasetsDraw
-}; // end fillBetweenLinesPlugin
-
-Chart.pluginService.register(fillBetweenLinesPlugin);
-//////////////////////////////////////////////////////
+percentageChart.load = function () {
 
 
-
-
-
-	procTimeChart = {
+	percentageChart.chart = {
 		type: 'line',
 		data: {
       labels: [],
 			datasets: [{
-				label: 'Max Time (s)',
-				backgroundColor: window.chartColors.red,
-				borderColor: window.chartColors.red,
+				label: 'Tasks solved per second (left)',
+				backgroundColor: window.chartColors.orange,
+				borderColor: window.chartColors.orange,
 				fill: false,
         tension: 0,
 				data: [
 
 				],
-			}, 
-      {
-				label: 'Mean Time + SD (s)',
-				backgroundColor: window.chartColors.gray,
-				borderColor: window.chartColors.gray,
-				fill: false,
-        tension: 0,
-        fillBetweenSet: 1,
-        fillBetweenColor: "rgba(0,0,255, 0.2)",
-				data: [
-
-				],
-        borderDash: [10,5]
+        yAxisID: 'y-axis-1',
 			},
-      {
-				label: 'Mean Time (s)',
-				backgroundColor: window.chartColors.blue,
-				borderColor: window.chartColors.blue,
-				fill: false,
-        tension: 0,
-        fillBetweenSet: 1,
-        //fillBetweenColor: "rgba(255,0,0, 0.2)",
-				data: [
+        {
+				  label: 'N connected devices (right)',
+				  backgroundColor: window.chartColors.blue,
+				  borderColor: window.chartColors.blue,
+				  fill: false,
+          tension: 0,
+				  data: [
 
-				]
-			},
-      {
-				label: 'Mean Time - SD (s)',
-				backgroundColor: window.chartColors.gray,
-				borderColor: window.chartColors.gray,
-				fill: false,
-        tension: 0,
-        fillBetweenSet: 1,
-        fillBetweenColor: "rgba(0,0,255, 0.2)",
-				data: [
-
-				],
-        borderDash: [10,5]
-			},
-      {
-				label: 'Min Time (s)',
-				backgroundColor: window.chartColors.green,
-				borderColor: window.chartColors.green,
-				fill: false,
-        tension: 0,
-				data: [
-
-				],
-			}
+				  ],
+        	yAxisID: 'y-axis-2',
+			  },
       ]
 		},
 		options: {
@@ -253,7 +97,7 @@ Chart.pluginService.register(fillBetweenLinesPlugin);
 			responsive: true,
 			title: {
 				display: true,
-				text: 'Statistics for processing time of a task for all volunteer devices.'
+				text: 'Tasks solved per second using N connected devices.'
 			},
 			scales: {
           xAxes: [
@@ -265,19 +109,37 @@ Chart.pluginService.register(fillBetweenLinesPlugin);
 				yAxes: [{
           labelString: "Time (s)",
 					display: true,
+					position: 'left',
+					id: 'y-axis-1',
           ticks: {
             beginAtZero: true
           }          
 					//type: 'logarithmic',
-				}]
+				}, 
+          {
+						type: 'linear', // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+						display: true,
+						position: 'right',
+						id: 'y-axis-2',
+            ticks: {
+              beginAtZero: true
+            },
+						// grid line settings
+						gridLines: {
+							drawOnChartArea: false, // only want the grid lines for one axis to show up
+						},
+					}
+
+        ]
 			}
 		}
 	};
 
-	window.onload = function() {
-		var ctx = document.getElementById('canvas').getContext('2d');
-		window.myLine = new Chart(ctx, procTimeChart);
-	};
+	//window.onload = function() {
+  //percentageChart.init = function() {
+		let ctx = document.getElementById('canvas_percentage').getContext('2d');
+		window.tasksPerSecondChart = new Chart(ctx, percentageChart.chart);
+	//};
 }
 
 

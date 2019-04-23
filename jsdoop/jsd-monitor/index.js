@@ -78,7 +78,7 @@ async function enqueueTask(ch, queueName, numMaps, accumReduce, mapPayloadFn=nul
     if(mapPayloadFn && typeof(mapPayloadFn) == 'function') {
       mapper.payload = mapPayloadFn(i, mapIx, reduceIx);
     }
-    logger.debug(mapper);
+    //logger.debug("enqueuing mapper " + mapper);
     ch.sendToQueue(queueName, new Buffer(JSON.stringify(mapper)), {persistent: true});
     awaitId.push(mapper.procId);
     if( i%accumReduce == 0 || i == numMaps ) {
@@ -91,7 +91,7 @@ async function enqueueTask(ch, queueName, numMaps, accumReduce, mapPayloadFn=nul
       if(reducePayloadFn && typeof(reducePayloadFn) == 'function') {
         reducer.payload = reducePayloadFn(i, mapIx, reduceIx);
       }
-      logger.debug(reducer);
+      //logger.debug("enqueuing reducer " + reducer);
       ch.sendToQueue(queueName, new Buffer(JSON.stringify(reducer)), {persistent: true});
       awaitId.length = 0;
       reduceIx++;

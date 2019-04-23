@@ -20,6 +20,11 @@ const fs = require("fs");
 /* Parámetros de conexión
 /*********************************************************************************************************************/
 
+//STATS
+let idJob = new Date().getTime();
+
+
+
 //TODO poner esto en un fichero de configuración
 const local = true;
 const taskName = 'lstm_text_generation';
@@ -171,12 +176,12 @@ let accumReduce; //GLOBAL (stats)
   modelFolder += "_" + modelFolderId;
   fs.mkdirSync(modelFolder);
   for(let i=1; i <= lastRemovedQueue; i++) {
-     logger.debug("lastRemovedQueue " + i + " " + lastRemovedQueue);
+     //logger.debug("lastRemovedQueue " + i + " " + lastRemovedQueue);
     let textString = await JSDDB.getText(modelGetBaseUrl + '_' + i);
     if(textString == null) break;
     fs.writeFile(modelFolder + "/" + taskName + "_model_id_" + i + ".json", textString, function(err, data) {
       if (err) logger.error(err);
-      logger.debug("Model id " + i + " saved");
+      //logger.debug("Model id " + i + " saved");
     });
     await JSDDB.setText(modelSetBaseUrl + '_' + i, "");
   }  
@@ -188,10 +193,15 @@ let accumReduce; //GLOBAL (stats)
   //}
 
 
+  //REMOVING STATS -> //TODO -> Save stats to HD
+  await JSDDB.setText(modelUrl + '/SET/' + taskName + "_stats_date", "");
+  await JSDDB.setText(modelUrl + '/SET/' + taskName + "_stats", "");
+  await JSDDB.setText(modelUrl + '/SET/' + taskName + "_stats_summary", "");
+
   //LOADING MODEL
   let model = await tfjsCustomModel.createLstmModel(lstmLayerSizes, sampleLen, dataset.charSet.length);
   let urlSavedModel = modelUrl + "/SET/" + taskName +"_model_id_" + 1;
-  await model.save(tfjsIOHandler.webdisRequest(urlSavedModel)).catch(error => logger.debug(error));
+  await model.save(tfjsIOHandler.webdisRequest(urlSavedModel)).catch(error => logger.error(error));
 
   //ch.prefetch(1); 
   await wde.enqueueTask(ch, queueName, numMaps, accumReduce, mapPayloadFn, reducePayloadFn);
@@ -218,9 +228,21 @@ let accumReduce; //GLOBAL (stats)
 /* STATS
 /*********************************************************************************************************************/
 let stats = {};
+let statsInterval = {};
 let statsSummary = {};
 let lastSaveStatsTime = 0;
 const saveStatsInterval = 3000;
+
+//let timeStampNTaskSolvedInLastInterval = [];//new Date().getTime();
+
+let initTimeToSolveTasksInLastInterval = null;//mappers and reducers;
+let totalTimeToSolveTasksInLastInterval = null;
+let nMapsSolvedInLastInterval = 0;//mappers;
+let nReducersSolvedInLastInterval = 0;//reducers;
+let workersInLastInterval = {};
+
+let taskSolvedInterval = 5;
+let taskSolvedPerSecond = 0;
 
 
 async function saveStats(){
@@ -236,23 +258,43 @@ function addStats(taskJSON){
   let taskStats = taskJSON.stats;
    //console.log("taskStats", JSON.stringify(taskStats));
 
+  workersInLastInterval[taskStats.workerInfo] = true; //STATS_INTERVAL
+
   if (!stats[taskStats.workerInfo]) {
     stats[taskStats.workerInfo] = {}; 
     stats[taskStats.workerInfo].mappers = [];
     stats[taskStats.workerInfo].reducers = [];
+  }
+  if (!statsInterval[taskStats.workerInfo]) {
+    statsInterval[taskStats.workerInfo] = {}; 
+    statsInterval[taskStats.workerInfo].mappers = [];
+    statsInterval[taskStats.workerInfo].reducers = [];
   }
 
   let toAdd = {"procId" : taskJSON.procId, "receivedDt" : taskStats.receivedDt, "startDt" : taskStats.startDt, "endDt" : taskStats.endDt};
 
   let procType = taskJSON.procId.substring(0, taskJSON.procId.indexOf("_"));
   console.log("procType = " + procType);
+
+
+
+
   if (procType === "reducer") {
+    nReducersSolvedInLastInterval++; //STATS_INTERVAL
+    console.log("----------ADDING REDUCER " + nReducersSolvedInLastInterval);
+
     stats[taskStats.workerInfo].reducers.push(toAdd);    
+    statsInterval[taskStats.workerInfo].reducers.push(toAdd);  
     for (let i = 0; i < taskStats.mapStats.length; i++) {
       addStats(JSON.parse(taskStats.mapStats[i]))
     }
   } else if (procType === "mapper") {
+    console.log("----------ADDING MAPPER " + nMapsSolvedInLastInterval);
+
+    nMapsSolvedInLastInterval++; //STATS_INTERVAL
+
     stats[taskStats.workerInfo].mappers.push(toAdd); 
+    statsInterval[taskStats.workerInfo].mappers.push(toAdd); 
   }  
 }
 
@@ -279,127 +321,145 @@ function average(data){
 }
 
 function showStats() {
-    for (var key in stats){
-        var workerId = key;
-        var workerInfoStats = stats[workerId];
-        let mappersTime = [];
-        let mappersProcTime = [];
 
-        let reducersTime = [];
-        let reducersProcTime = [];
+  let mappersTime = [];
+  let mappersProcTime = [];
 
-        let totalTimeMappers = 0;
-        let totalProcTimeMappers = 0;
+  let reducersTime = [];
+  let reducersProcTime = [];
 
-        let totalTimeReducers = 0;
-        let totalProcTimeReducers = 0;
+  let totalTimeMappers = 0;
+  let totalProcTimeMappers = 0;
+
+  let totalTimeReducers = 0;
+  let totalProcTimeReducers = 0;
+
+  
+  let totalTimeTasks = 0;
+  let totalProcTimeTasks = 0;
+
+  for (var key in statsInterval){
+      var workerId = key;
+
+      for (let i = 0; i < statsInterval[workerId].mappers.length; i++) {
+        mappersTime.push(statsInterval[workerId].mappers[i].endDt - statsInterval[workerId].mappers[i].receivedDt); 
+        mappersProcTime.push(statsInterval[workerId].mappers[i].endDt - statsInterval[workerId].mappers[i].startDt);   
+        totalTimeMappers += statsInterval[workerId].mappers[i].endDt - statsInterval[workerId].mappers[i].receivedDt;  
+        totalProcTimeMappers += statsInterval[workerId].mappers[i].endDt - statsInterval[workerId].mappers[i].startDt;  
+      }
+
+      for (let i = 0; i < statsInterval[workerId].reducers.length; i++) {
+        reducersTime.push(statsInterval[workerId].reducers[i].endDt - statsInterval[workerId].reducers[i].receivedDt); 
+        reducersProcTime.push(statsInterval[workerId].reducers[i].endDt - statsInterval[workerId].reducers[i].startDt);   
+        totalTimeReducers += statsInterval[workerId].reducers[i].endDt - statsInterval[workerId].reducers[i].receivedDt;  
+        totalProcTimeReducers += statsInterval[workerId].reducers[i].endDt - statsInterval[workerId].reducers[i].startDt;  
+      };
+  }
+
+  totalTimeTasks = totalTimeMappers + totalTimeReducers;
+  totalProcTimeTasks = totalProcTimeMappers + totalProcTimeReducers;
+  let tasksTime = mappersTime.concat(reducersTime);
+  let tasksProcTime = mappersProcTime.concat(reducersProcTime);
+
+  let avgTimeTasks = (totalTimeTasks / tasksTime.length);
+  let sdTimeTasks = standardDeviation(tasksTime, avgTimeTasks);
+  let avgProcTimeTasks = (totalProcTimeTasks / tasksProcTime.length);
+  let sdProcTimeTasks = standardDeviation(tasksProcTime, avgProcTimeTasks);
+
+  let avgTimeMappers = (totalTimeMappers / mappersTime.length);
+  let sdTimeMappers = standardDeviation(mappersTime, avgTimeMappers);
+  let avgTimeReducers = (totalTimeReducers / reducersTime.length);
+  let sdTimeReducers = standardDeviation(reducersTime, avgTimeReducers);
 
 
-        for (let i = 0; i < stats[workerId].mappers.length; i++) {
-          mappersTime.push(stats[workerId].mappers[i].endDt - stats[workerId].mappers[i].receivedDt); 
-          mappersProcTime.push(stats[workerId].mappers[i].endDt - stats[workerId].mappers[i].startDt);   
-          totalTimeMappers += stats[workerId].mappers[i].endDt - stats[workerId].mappers[i].receivedDt;  
-          totalProcTimeMappers += stats[workerId].mappers[i].endDt - stats[workerId].mappers[i].startDt;  
-        }
+  let avgProcTimeMappers = (totalProcTimeMappers / mappersProcTime.length);
+  let sdProcTimeMappers = standardDeviation(mappersProcTime, avgProcTimeMappers);
+  let avgProcTimeReducers = (totalProcTimeReducers / reducersProcTime.length);
+  let sdProcTimeReducers = standardDeviation(reducersProcTime, avgProcTimeReducers);
 
-        for (let i = 0; i < stats[workerId].reducers.length; i++) {
-          reducersTime.push(stats[workerId].reducers[i].endDt - stats[workerId].reducers[i].receivedDt); 
-          reducersProcTime.push(stats[workerId].reducers[i].endDt - stats[workerId].reducers[i].startDt);   
-          totalTimeReducers += stats[workerId].reducers[i].endDt - stats[workerId].reducers[i].receivedDt;  
-          totalProcTimeReducers += stats[workerId].reducers[i].endDt - stats[workerId].reducers[i].startDt;  
-        };
+  statsSummary = {};
+  statsSummary.idJob = idJob;
+  statsSummary.mappers = {};
+  statsSummary.mappers.totalTime = totalTimeMappers;
+  statsSummary.mappers.avgTime = avgTimeMappers;
+  statsSummary.mappers.sdTime = sdTimeMappers;
+  statsSummary.mappers.maxTime = Math.max.apply(null, mappersTime);
+  statsSummary.mappers.minTime = Math.min.apply(null, mappersTime);
 
-        let avgTimeMappers = (totalTimeMappers / stats[workerId].mappers.length);
-        let sdTimeMappers = standardDeviation(mappersTime, avgTimeMappers);
-        let avgTimeReducers = (totalTimeReducers / stats[workerId].mappers.length);
-        let sdTimeReducers = standardDeviation(reducersTime, avgTimeReducers);
+  statsSummary.mappers.totalProcTime = totalProcTimeMappers;
+  statsSummary.mappers.avgProcTime = avgProcTimeMappers;
+  statsSummary.mappers.sdProcTime = sdProcTimeMappers;
+  statsSummary.mappers.maxProcTime = Math.max.apply(null, mappersProcTime);
+  statsSummary.mappers.minProcTime = Math.min.apply(null, mappersProcTime);
+
+  statsSummary.reducers = {};
+  statsSummary.reducers.totalTime = totalTimeReducers;
+  statsSummary.reducers.avgTime = avgTimeReducers;
+  statsSummary.reducers.sdTime = sdTimeReducers;
+  statsSummary.reducers.maxTime = Math.max.apply(null, reducersTime);
+  statsSummary.reducers.minTime = Math.min.apply(null, reducersTime);
+
+  statsSummary.reducers.totalProcTime = totalProcTimeReducers;
+  statsSummary.reducers.avgProcTime = avgProcTimeReducers;
+  statsSummary.reducers.sdProcTime = sdProcTimeReducers;
+  statsSummary.reducers.maxProcTime = Math.max.apply(null, reducersProcTime);
+  statsSummary.reducers.minProcTime = Math.min.apply(null, reducersProcTime);
+
+  statsSummary.tasks = {};
+  statsSummary.tasks.totalTime = totalTimeTasks;
+  statsSummary.tasks.avgTime = avgTimeTasks;
+  statsSummary.tasks.sdTime = sdTimeTasks;
+  statsSummary.tasks.maxTime = Math.max.apply(null, tasksTime);
+  statsSummary.tasks.minTime = Math.min.apply(null, tasksTime);
+
+  statsSummary.tasks.totalProcTime = totalProcTimeTasks;
+  statsSummary.tasks.avgProcTime = avgProcTimeTasks;
+  statsSummary.tasks.sdProcTime = sdProcTimeTasks;
+  statsSummary.tasks.maxProcTime = Math.max.apply(null, tasksProcTime);
+  statsSummary.tasks.minProcTime = Math.min.apply(null, tasksProcTime);
+
+  statsSummary.totalTasksSolved = tasksProcTime.length;
+
+  statsSummary.totalTasksToSolve = numMaps + (numMaps / accumReduce) + ( (numMaps % accumReduce > 0 ? 1 : 0) );      
+  statsSummary.percentageCompleted = (statsSummary.totalTasksSolved / statsSummary.totalTasksToSolve) * 100;
+  statsSummary.timeStamp = new Date().getTime();
+
+  statsSummary.taskSolvedPerSecond = (nMapsSolvedInLastInterval + nReducersSolvedInLastInterval) / (totalTimeToSolveTasksInLastInterval / 1000);
+  statsSummary.nWorkers = Object.keys(workersInLastInterval).length;
+  nMapsSolvedInLastInterval = 0;
+  nReducersSolvedInLastInterval = 0;
+  workersInLastInterval = {}; //STATS_INTERVAL 
 
 
-        let avgProcTimeMappers = (totalProcTimeMappers / stats[workerId].mappers.length);
-        let sdProcTimeMappers = standardDeviation(mappersProcTime, avgProcTimeMappers);
-        let avgProcTimeReducers = (totalProcTimeReducers / stats[workerId].mappers.length);
-        let sdProcTimeReducers = standardDeviation(reducersProcTime, avgProcTimeReducers);
-
-
-        statsSummary = {};
-        statsSummary.mappers = {};
-        statsSummary.mappers.totalTime = totalTimeMappers;
-        statsSummary.mappers.avgTime = avgTimeMappers;
-        statsSummary.mappers.sdTime = sdTimeMappers;
-        statsSummary.mappers.maxTime = Math.max.apply(null, mappersTime);
-        statsSummary.mappers.minTime = Math.min.apply(null, mappersTime);
-
-        statsSummary.mappers.totalProcTime = totalProcTimeMappers;
-        statsSummary.mappers.avgProcTime = avgProcTimeMappers;
-        statsSummary.mappers.sdProcTime = sdProcTimeMappers;
-        statsSummary.mappers.maxProcTime = Math.max.apply(null, mappersProcTime);
-        statsSummary.mappers.minProcTime = Math.min.apply(null, mappersProcTime);
-
-        statsSummary.reducers = {};
-        statsSummary.reducers.totalTime = totalTimeReducers;
-        statsSummary.reducers.avgTime = avgTimeReducers;
-        statsSummary.reducers.sdTime = sdTimeReducers;
-        statsSummary.reducers.maxTime = Math.max.apply(null, reducersTime);
-        statsSummary.reducers.minTime = Math.min.apply(null, reducersTime);
-
-        statsSummary.reducers.totalProcTime = totalProcTimeReducers;
-        statsSummary.reducers.avgProcTime = avgProcTimeReducers;
-        statsSummary.reducers.sdProcTime = sdProcTimeReducers;
-        statsSummary.reducers.maxProcTime = Math.max.apply(null, reducersProcTime);
-        statsSummary.reducers.minProcTime = Math.min.apply(null, reducersProcTime);
-
-        statsSummary.totalTasksSolved = mappersTime.length + reducersTime.length;
-
-        statsSummary.totalTasksToSolve = numMaps + (numMaps / accumReduce) + ( (numMaps % accumReduce > 0 ? 1 : 0) );      
-        statsSummary.percentageCompleted = statsSummary.totalTasksSolved / statsSummary.totalTasksToSolve;
-        statsSummary.timeStamp = new Date().getTime();
-        
-        console.log("\n\n# ID = " + workerId + "\n");
-        console.log("## MAPPERS\n");
-        console.log("### total_time\n");
-        console.log("### TOTAL = " + totalTimeMappers + "\n");
-        console.log("### MEAN = " + avgTimeMappers + "\n");
-        console.log("### SD = " + sdTimeMappers+ "\n");
-        console.log("### MAX = " + statsSummary.mappers.maxTime + "\n");     
-        console.log("### MIN = " + statsSummary.mappers.minTime + "\n");   
-
-        console.log("### proc_time\n");
-        console.log("### TOTAL = " + totalProcTimeMappers + "\n");
-        console.log("### MEAN = " + avgProcTimeMappers + "\n");
-        console.log("### SD = " + sdProcTimeMappers+ "\n");
-        console.log("### MAX = " + statsSummary.mappers.maxProcTime + "\n");     
-        console.log("### MIN = " + statsSummary.mappers.minProcTime + "\n");   
-
-        console.log("## REDUCERS\n");
-        console.log("### total_time\n");
-        console.log("### TOTAL = " + totalTimeReducers + "\n");
-        console.log("### MEAN = " + avgTimeMappers + "\n");
-        console.log("### SD = " + sdTimeMappers+ "\n");
-        console.log("### MAX = " + statsSummary.reducers.maxTime + "\n");     
-        console.log("### MIN = " + statsSummary.reducers.minTime + "\n"); 
-
-        console.log("### proc_time\n");
-        console.log("### TOTAL = " + totalProcTimeReducers + "\n");
-        console.log("### MEAN = " + avgProcTimeMappers + "\n");
-        console.log("### SD = " + sdProcTimeMappers+ "\n");
-        console.log("### MAX = " + statsSummary.reducers.maxProcTime + "\n");     
-        console.log("### MIN = " + statsSummary.reducers.minProcTime + "\n"); 
-    }
+      console.log("zzstats = " + JSON.stringify(stats));
+      console.log("zzstatsSummary = " + JSON.stringify(statsSummary));
+      console.log("zzstatsInterval = " + JSON.stringify(statsInterval));
+  statsInterval = {};//STATS_INTERVAL
 }
+
 
 async function calculateStats(msg) {
   try {
+    if (initTimeToSolveTasksInLastInterval == null) initTimeToSolveTasksInLastInterval = new Date().getTime();
+
     //console.log("statsMSG = " + msg);
     let taskJSON = JSON.parse(msg);
     //console.log("taskJSON = " + taskJSON);
     addStats(taskJSON);
     //console.log(JSON.stringify(stats));  
-    showStats();
-    console.log(JSON.stringify(stats));
-    console.log(JSON.stringify(statsSummary));
+
 
     
-    if (new Date().getTime() > lastSaveStatsTime + saveStatsInterval) saveStats();
+    if (new Date().getTime() > lastSaveStatsTime + saveStatsInterval) {
+      console.log("UPDATING " + (lastSaveStatsTime + saveStatsInterval));
+      let finalTime = new Date().getTime();
+      totalTimeToSolveTasksInLastInterval = finalTime - initTimeToSolveTasksInLastInterval;
+      initTimeToSolveTasksInLastInterval = finalTime;
+
+      showStats();
+
+      saveStats();
+    }
     return true;
   } catch (e) {
     logger.error(e);
