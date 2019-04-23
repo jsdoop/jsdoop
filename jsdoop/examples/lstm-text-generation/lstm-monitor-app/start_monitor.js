@@ -58,7 +58,7 @@ let accumReduce; //GLOBAL (stats)
 
 (async () => {
   //TODO batchSize, sampleLen y sampleStep debieran ser configurables
-  const batchSize = 5;
+  const batchSize = 8;
   const sampleLen = 40; //32; // 1024
   const sampleStep = 3; //8; // 256
   // const textUrl = 'http://mallba3.lcc.uma.es/jamorell/deeplearning/dataset/el_quijote.txt'
@@ -115,18 +115,18 @@ let accumReduce; //GLOBAL (stats)
 
   //Catching signals and exceptions
   process.on('uncaughtException', function (err) {
-    console.error(err.stack);
-    console.log("Node NOT Exiting...");
+    logger.error(err.stack);
+    logger.error("Node NOT Exiting...");
   });
   process.on('SIGTERM', () => {
-    console.info('SIGTERM signal received.');
+    logger.info('SIGTERM signal received.');
     ch.close();
     conn.close();
     logger.debug("DISCONNECTED CORRECTLY");
     process.exit(0);
   });
   process.on('SIGINT', () => {
-    console.info('SIGINT signal received.');
+    logger.info('SIGINT signal received.');
     ch.close();
     conn.close();
     logger.debug("DISCONNECTED CORRECTLY");
@@ -274,14 +274,14 @@ function addStats(taskJSON){
   let toAdd = {"procId" : taskJSON.procId, "receivedDt" : taskStats.receivedDt, "startDt" : taskStats.startDt, "endDt" : taskStats.endDt};
 
   let procType = taskJSON.procId.substring(0, taskJSON.procId.indexOf("_"));
-  console.log("procType = " + procType);
+  logger.debug("procType = " + procType);
 
 
 
 
   if (procType === "reducer") {
     nReducersSolvedInLastInterval++; //STATS_INTERVAL
-    console.log("----------ADDING REDUCER " + nReducersSolvedInLastInterval);
+    logger.debug("----------ADDING REDUCER " + nReducersSolvedInLastInterval);
 
     stats[taskStats.workerInfo].reducers.push(toAdd);    
     statsInterval[taskStats.workerInfo].reducers.push(toAdd);  
@@ -289,7 +289,7 @@ function addStats(taskJSON){
       addStats(JSON.parse(taskStats.mapStats[i]))
     }
   } else if (procType === "mapper") {
-    console.log("----------ADDING MAPPER " + nMapsSolvedInLastInterval);
+    logger.debug("----------ADDING MAPPER " + nMapsSolvedInLastInterval);
 
     nMapsSolvedInLastInterval++; //STATS_INTERVAL
 
@@ -424,16 +424,19 @@ function showStats() {
   statsSummary.percentageCompleted = (statsSummary.totalTasksSolved / statsSummary.totalTasksToSolve) * 100;
   statsSummary.timeStamp = new Date().getTime();
 
-  statsSummary.taskSolvedPerSecond = (nMapsSolvedInLastInterval + nReducersSolvedInLastInterval) / (totalTimeToSolveTasksInLastInterval / 1000);
+  if( (nMapsSolvedInLastInterval + nReducersSolvedInLastInterval) > 0 && totalTimeToSolveTasksInLastInterval > 1000) {
+    statsSummary.taskSolvedPerSecond = (nMapsSolvedInLastInterval + nReducersSolvedInLastInterval) / (totalTimeToSolveTasksInLastInterval / 1000);
+  } else {
+    statsSummary.taskSolvedPerSecond = 0;
+  }
   statsSummary.nWorkers = Object.keys(workersInLastInterval).length;
   nMapsSolvedInLastInterval = 0;
   nReducersSolvedInLastInterval = 0;
   workersInLastInterval = {}; //STATS_INTERVAL 
 
-
-      console.log("zzstats = " + JSON.stringify(stats));
-      console.log("zzstatsSummary = " + JSON.stringify(statsSummary));
-      console.log("zzstatsInterval = " + JSON.stringify(statsInterval));
+  logger.debug("zzstats = " + JSON.stringify(stats));
+  logger.debug("zzstatsSummary = " + JSON.stringify(statsSummary));
+  logger.debug("zzstatsInterval = " + JSON.stringify(statsInterval));
   statsInterval = {};//STATS_INTERVAL
 }
 
@@ -451,7 +454,7 @@ async function calculateStats(msg) {
 
     
     if (new Date().getTime() > lastSaveStatsTime + saveStatsInterval) {
-      console.log("UPDATING " + (lastSaveStatsTime + saveStatsInterval));
+      logger.debug("UPDATING " + (lastSaveStatsTime + saveStatsInterval));
       let finalTime = new Date().getTime();
       totalTimeToSolveTasksInLastInterval = finalTime - initTimeToSolveTasksInLastInterval;
       initTimeToSolveTasksInLastInterval = finalTime;
