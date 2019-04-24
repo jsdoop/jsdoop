@@ -424,7 +424,7 @@ function showStats() {
   statsSummary.percentageCompleted = (statsSummary.totalTasksSolved / statsSummary.totalTasksToSolve) * 100;
   statsSummary.timeStamp = new Date().getTime();
 
-  if( (nMapsSolvedInLastInterval + nReducersSolvedInLastInterval) > 0 && totalTimeToSolveTasksInLastInterval > 1000) {
+  if( totalTimeToSolveTasksInLastInterval > 1000) {
     statsSummary.taskSolvedPerSecond = (nMapsSolvedInLastInterval + nReducersSolvedInLastInterval) / (totalTimeToSolveTasksInLastInterval / 1000);
   } else {
     statsSummary.taskSolvedPerSecond = 0;

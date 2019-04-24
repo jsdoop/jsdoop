@@ -10,10 +10,6 @@
       width: calc(100vw - 600px);
     }
 
-    canvas {
-      width: 100px;
-    }
-
     .pred {
       font-size: 30px;
       width: 100px;
@@ -32,8 +28,35 @@
       width: 100px;
       margin: 10px;
     }
+
+
+    body {
+        background: ghostwhite;
+    }
+  
+    .onoffswitch {
+      margin: 0 auto;
+    }
+
+    .text-container {
+      text-align: center;
+    }
+
+
     .included_html {
       display: none;
+      width:50% !important;
+    }
+
+
+    #stats-container {
+      display: table !important;
+      width: 95vw !important;
+    }
+
+    #charts-table {
+      display: table-row !important;
+      width:100% !important;
     }
 
 
@@ -51,7 +74,14 @@
         <p>
           This page is running a worker that consumes tasks from the master server.
         </p>
-            
+        <span>Toggle to show/hide Stats.</span>
+        <div class="onoffswitch">
+            <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch" unchecked>
+            <label class="onoffswitch-label" for="myonoffswitch">
+                <span class="onoffswitch-inner"></span>
+                <span class="onoffswitch-switch"></span>
+            </label>
+        </div>            
       </section>
     </div>
   </div>
@@ -60,21 +90,17 @@
 
 
 
-  <div class="out-stats-container">
-    <div class="stats-container">
-        <input type="text" id="tasksSolvedPerSecond" readonly>
+ <!-- <div class="out-stats-container"> -->
+    <div id ="stats-container">
+       <!-- <input type="text" id="tasksSolvedPerSecond" readonly> -->
         <link href="./stats.html" rel="import" />
         <link href="./percentage.html" rel="import" />
-        <span>Toggle to show/hide Stats.</span>
-        <div class="onoffswitch">
-            <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="myonoffswitch" unchecked>
-            <label class="onoffswitch-label" for="myonoffswitch">
-                <span class="onoffswitch-inner"></span>
-                <span class="onoffswitch-switch"></span>
-            </label>
+
+        <div id ="charts-table">
+
         </div>
     </div>
-  </div>
+<!--  </div> -->
 <!--
     <input type="checkbox" name="onoffswitch" unchecked>
 -->
@@ -90,7 +116,8 @@ let includedHtml;
 for (let i = 0; i < toImportAll.length; i++) {
   toImport = toImportAll[i].import;
   includedHtml = toImport.querySelector('.included_html' + i);
-  document.body.appendChild(includedHtml.cloneNode(true))
+  document.getElementById("charts-table").appendChild(includedHtml.cloneNode(true));
+  //document.body.appendChild(includedHtml.cloneNode(true))
 }
 
 
@@ -104,8 +131,6 @@ window.onload = function() {
 }
 
 
-//loadCharts();
-//loadChartPercentage();
 
 
       let worker = new Worker("./worker.js");
@@ -154,6 +179,8 @@ window.onload = function() {
         });
       }
 
+
+      let lastStatsJobId = null;
       let showStats = false;
       let stats = {};
       let lastIdStats = 0;
@@ -177,11 +204,20 @@ window.onload = function() {
                 }, 3000);
                 return;
               } 
+              if (lastStatsJobId == null) lastStatsJobId = statsJson.idJob;
+              //IF DIFFERENT JOB -> RESET CHARTS  
+              if (statsJson.idJob != lastStatsJobId) {
+                lastStatsJobId = statsJson.idJob;  
+                console.log("A new job has been started!!!");
+                for (let i = 0; i < charts.length; i++) {
+                  charts[i].reset();
+                }            
+              }
+
+
               //let statsJson = JSON.parse(JSON.parse(stats).GET);
-              let inputSpeed = document.getElementById("tasksSolvedPerSecond");
-              inputSpeed.value = statsJson.taskSolvedPerSecond;
-              //updateProcTimeChart(procTimeChart, statsJson, true);
-              //updateTasksPerSecondChart(procTimeChart, statsJson);
+              //let inputSpeed = document.getElementById("tasksSolvedPerSecond");
+              //inputSpeed.value = statsJson.taskSolvedPerSecond;
               for (let i = 0; i < charts.length; i++) {
                 charts[i].update(statsJson);
               }
@@ -211,7 +247,8 @@ window.onload = function() {
               let elements = document.getElementsByClassName("included_html");
               if (elements) {
                 for (let i = 0; i < elements.length; i++) {
-                  elements[i].style.display = "block";
+                  //elements[i].style.display = "block";
+                  elements[i].style.display = "table-cell";
                 }        
               }
               
@@ -233,21 +270,7 @@ window.onload = function() {
       });
 
 
-	  //window.onload = function() {
 
-/**
-    document.body.onload = function() {
-       //initStatsChart();
-       //initPercentageChart();
-        
-        charts.push(statsChart);
-        //charts.push(percentageChart);
-        for (let i = 0; i < charts.length; i++) {
-        //  charts[i].init();
-            charts[i].load();
-        }
-    }
-**/
 
     </script>
 
