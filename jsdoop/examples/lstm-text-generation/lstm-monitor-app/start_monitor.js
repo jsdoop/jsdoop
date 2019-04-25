@@ -193,6 +193,18 @@ let accumReduce; //GLOBAL (stats)
   //}
 
 
+
+  //SAVING STATS -
+  const textAllMsgs = await JSDDB.getText(modelUrl + '/GET/' + taskName + "_all_msgs"); 
+  if (textAllMsgs) {
+    fs.writeFile(modelFolder + "/" + taskName + "_model_results.json", textAllMsgs, function(err, data) {
+      if (err) logger.error(err);
+      //logger.debug("Model id " + i + " saved");
+    });
+  }
+
+
+
   //REMOVING STATS -> //TODO -> Save stats to HD
   await JSDDB.setText(modelUrl + '/SET/' + taskName + "_stats_date", "");
   await JSDDB.setText(modelUrl + '/SET/' + taskName + "_stats", "");
@@ -227,6 +239,7 @@ let accumReduce; //GLOBAL (stats)
 /*********************************************************************************************************************/
 /* STATS
 /*********************************************************************************************************************/
+let allMsgs = [];
 let stats = {};
 let statsInterval = {};
 let statsSummary = {};
@@ -247,6 +260,7 @@ let taskSolvedPerSecond = 0;
 
 async function saveStats(){
   lastSaveStatsTime = new Date().getTime();
+  await JSDDB.setText(modelUrl + '/SET/' + taskName + "_all_msgs", JSON.stringify(stats));
   await JSDDB.setText(modelUrl + '/SET/' + taskName + "_stats_date", "" + statsSummary.timeStamp);
   await JSDDB.setText(modelUrl + '/SET/' + taskName + "_stats", JSON.stringify(stats));
   await JSDDB.setText(modelUrl + '/SET/' + taskName + "_stats_summary", JSON.stringify(statsSummary));
@@ -380,52 +394,55 @@ function showStats() {
   statsSummary = {};
   statsSummary.idJob = idJob;
   statsSummary.mappers = {};
-  statsSummary.mappers.totalTime = totalTimeMappers;
-  statsSummary.mappers.avgTime = avgTimeMappers;
-  statsSummary.mappers.sdTime = sdTimeMappers;
-  statsSummary.mappers.maxTime = Math.max.apply(null, mappersTime);
-  statsSummary.mappers.minTime = Math.min.apply(null, mappersTime);
+  statsSummary.mappers.totalTime = totalTimeMappers.toFixed(2);
+  statsSummary.mappers.avgTime = avgTimeMappers.toFixed(2);
+  statsSummary.mappers.sdTime = sdTimeMappers.toFixed(2);
+  statsSummary.mappers.maxTime = Math.max.apply(null, mappersTime).toFixed(2);
+  statsSummary.mappers.minTime = Math.min.apply(null, mappersTime).toFixed(2);
 
-  statsSummary.mappers.totalProcTime = totalProcTimeMappers;
-  statsSummary.mappers.avgProcTime = avgProcTimeMappers;
-  statsSummary.mappers.sdProcTime = sdProcTimeMappers;
-  statsSummary.mappers.maxProcTime = Math.max.apply(null, mappersProcTime);
-  statsSummary.mappers.minProcTime = Math.min.apply(null, mappersProcTime);
+  statsSummary.mappers.totalProcTime = totalProcTimeMappers.toFixed(2);
+  statsSummary.mappers.avgProcTime = avgProcTimeMappers.toFixed(2);
+  statsSummary.mappers.sdProcTime = sdProcTimeMappers.toFixed(2);
+  statsSummary.mappers.maxProcTime = Math.max.apply(null, mappersProcTime).toFixed(2);
+  statsSummary.mappers.minProcTime = Math.min.apply(null, mappersProcTime).toFixed(2);
 
   statsSummary.reducers = {};
-  statsSummary.reducers.totalTime = totalTimeReducers;
-  statsSummary.reducers.avgTime = avgTimeReducers;
-  statsSummary.reducers.sdTime = sdTimeReducers;
-  statsSummary.reducers.maxTime = Math.max.apply(null, reducersTime);
-  statsSummary.reducers.minTime = Math.min.apply(null, reducersTime);
+  statsSummary.reducers.totalTime = totalTimeReducers.toFixed(2);
+  statsSummary.reducers.avgTime = avgTimeReducers.toFixed(2);
+  statsSummary.reducers.sdTime = sdTimeReducers.toFixed(2);
+  statsSummary.reducers.maxTime = Math.max.apply(null, reducersTime).toFixed(2);
+  statsSummary.reducers.minTime = Math.min.apply(null, reducersTime).toFixed(2);
 
-  statsSummary.reducers.totalProcTime = totalProcTimeReducers;
-  statsSummary.reducers.avgProcTime = avgProcTimeReducers;
-  statsSummary.reducers.sdProcTime = sdProcTimeReducers;
-  statsSummary.reducers.maxProcTime = Math.max.apply(null, reducersProcTime);
-  statsSummary.reducers.minProcTime = Math.min.apply(null, reducersProcTime);
+  statsSummary.reducers.totalProcTime = totalProcTimeReducers.toFixed(2);
+  statsSummary.reducers.avgProcTime = avgProcTimeReducers.toFixed(2);
+  statsSummary.reducers.sdProcTime = sdProcTimeReducers.toFixed(2);
+  statsSummary.reducers.maxProcTime = Math.max.apply(null, reducersProcTime).toFixed(2);
+  statsSummary.reducers.minProcTime = Math.min.apply(null, reducersProcTime).toFixed(2);
 
   statsSummary.tasks = {};
-  statsSummary.tasks.totalTime = totalTimeTasks;
-  statsSummary.tasks.avgTime = avgTimeTasks;
-  statsSummary.tasks.sdTime = sdTimeTasks;
-  statsSummary.tasks.maxTime = Math.max.apply(null, tasksTime);
-  statsSummary.tasks.minTime = Math.min.apply(null, tasksTime);
+  statsSummary.tasks.totalTime = totalTimeTasks.toFixed(2);
+  statsSummary.tasks.avgTime = avgTimeTasks.toFixed(2);
+  statsSummary.tasks.sdTime = sdTimeTasks.toFixed(2);
+  statsSummary.tasks.maxTime = Math.max.apply(null, tasksTime).toFixed(2);
+  statsSummary.tasks.minTime = Math.min.apply(null, tasksTime).toFixed(2);
 
-  statsSummary.tasks.totalProcTime = totalProcTimeTasks;
-  statsSummary.tasks.avgProcTime = avgProcTimeTasks;
-  statsSummary.tasks.sdProcTime = sdProcTimeTasks;
-  statsSummary.tasks.maxProcTime = Math.max.apply(null, tasksProcTime);
-  statsSummary.tasks.minProcTime = Math.min.apply(null, tasksProcTime);
+  statsSummary.tasks.totalProcTime = totalProcTimeTasks.toFixed(2);
+  statsSummary.tasks.avgProcTime = avgProcTimeTasks.toFixed(2);
+  statsSummary.tasks.sdProcTime = sdProcTimeTasks.toFixed(2);
+  statsSummary.tasks.maxProcTime = Math.max.apply(null, tasksProcTime).toFixed(2);
+  statsSummary.tasks.minProcTime = Math.min.apply(null, tasksProcTime).toFixed(2);
 
   statsSummary.totalTasksSolved = tasksProcTime.length;
 
   statsSummary.totalTasksToSolve = numMaps + (numMaps / accumReduce) + ( (numMaps % accumReduce > 0 ? 1 : 0) );      
   statsSummary.percentageCompleted = (statsSummary.totalTasksSolved / statsSummary.totalTasksToSolve) * 100;
+  statsSummary.percentageCompleted =   statsSummary.percentageCompleted.toFixed(2)
+
   statsSummary.timeStamp = new Date().getTime();
 
   if( totalTimeToSolveTasksInLastInterval > 1000) {
     statsSummary.taskSolvedPerSecond = (nMapsSolvedInLastInterval + nReducersSolvedInLastInterval) / (totalTimeToSolveTasksInLastInterval / 1000);
+    statsSummary.taskSolvedPerSecond = statsSummary.taskSolvedPerSecond.toFixed(2);
   } else {
     statsSummary.taskSolvedPerSecond = 0;
   }
@@ -447,6 +464,7 @@ async function calculateStats(msg) {
 
     //console.log("statsMSG = " + msg);
     let taskJSON = JSON.parse(msg);
+    allMsgs.push(taskJSON);
     //console.log("taskJSON = " + taskJSON);
     addStats(taskJSON);
     //console.log(JSON.stringify(stats));  
