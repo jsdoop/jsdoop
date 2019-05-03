@@ -7,6 +7,8 @@ const JSDLogger = require('jsd-utils/jsd-logger');
 const logger = JSDLogger.logger;
 
 
+
+
 /**
 * WORKER (JavaScript Client)
 */
@@ -23,8 +25,8 @@ class Worker {
     let ws = new WebSocketClient(this.wsConnStr);
     this.client = Stomp.over(ws);
     this.client.debug = null;
-    this.client.heartbeat.outgoing = 0;
-    this.client.heartbeat.incoming = 0;
+    this.client.heartbeat.outgoing = 5000;//0;
+    this.client.heartbeat.incoming = 5000;//0;
     this.client.reconnect_delay = 3000;
 
     this.queuesObjects = {};
@@ -32,9 +34,10 @@ class Worker {
     this.totalMsgs = 0;
   }
 
-  sendToQueue(msg, queueName) {
+  async sendToQueue(msg, queueName) {
     logger.debug("MSG '" + JSON.stringify(msg).substring(0, 100) + "' queued on " + queueName);
-    this.client.send(queueName, {priority: 9}, msg);
+    let sended = await this.client.send(queueName, {priority: 9}, msg);
+    logger.debug("SENDED = " + sended);
   }
 
   async accumulatingReduce(decoded, self) {
@@ -112,14 +115,40 @@ class Worker {
 
       //TODO -> De momento solo hay 1 reduce
       //self.sendToQueue(JSON.stringify(msgResult), decoded.queueName + "_reduces_" + decoded.reduceId);	//TODO -> async? await?
-      self.sendToQueue(JSON.stringify(msgResult), decoded.queueName + "_reduces_results");	//TODO -> async? await?      
-      self.ack(undecodedMsg, self);
-      results.map(x => self.ack(x, self));
+      self.sendToQueue(JSON.stringify(msgResult), decoded.queueName + "_reduces_results");	//TODO -> async? await?    
+
+      /////////////TRANSACTION -->   
+      logger.debug("Begin transaction of reducers");
+      let tx = this.client.begin();
+      let receipt = 'my-receipt' + new Date().getTime();
+      let tran = { transaction: tx.id, receipt: receipt };
+      self.ack(undecodedMsg, self, tran);
+      results.map(x => self.ack(x, self, tran));
+      //undecodedMsg.ack({ transaction: tx.id, receipt: receipt });
+      //results.map(x => x.ack({ transaction: tx.id, receipt: receipt }));
+      tx.commit();
+      logger.debug("End transaction of reducers");
+      //self.ack(undecodedMsg, self);
+      //results.map(x => self.ack(x, self));
+      /////////////
+      self.unsubscribe(decoded.queueName + "_maps_results_"+ decoded.reduceId, self);
       return true;
     } else {
       logger.warn("WARNING: reduceResult FALSE " + reduceResult);
-      self.nack(undecodedMsg, self);
-      results.map(x => self.nack(x, self));
+      /////////////TRANSACTION -->   
+      logger.debug("Begin transaction of reducers");
+      let tx = this.client.begin();
+      let receipt = 'my-receipt' + new Date().getTime();
+      self.nack(undecodedMsg, self, tran);
+      results.map(x => self.nack(x, self, tran));
+      //undecodedMsg.nack({ transaction: tx.id, receipt: receipt });
+      //results.map(x => x.nack({ transaction: tx.id, receipt: receipt }));
+      tx.commit();
+      logger.debug("End transaction of reducers");
+      self.unsubscribe(decoded.queueName + "_maps_results_"+ decoded.reduceId, self);
+      //self.nack(undecodedMsg, self);
+      //results.map(x => self.nack(x, self));
+      /////////////
       return false;
     }	
   }
@@ -160,15 +189,17 @@ class Worker {
     logger.debug("message.body = " + message.body);
   }
 
-  ack(message, self) {
-    message.ack();
+  ack(message, self, tran) {
+    if (tran) message.ack(tran);
+    else message.ack();
     logger.debug("INFO: Msg ack() -> " + message.body);
     self.totalMsgs--;
     logger.debug("--- MSG total = " + self.totalMsgs + " -> " + message.body);
   }
 
-  nack(message, self) {
-    message.nack();
+  nack(message, self, tran) {
+    if (tran) message.nack(tran);
+    else message.nack();
     logger.warn("WARNING: Msg nack() -> " + message.body);
     self.totalMsgs--;
     logger.debug("--- MSG total = " + self.totalMsgs + " -> " + message.body);
@@ -186,7 +217,7 @@ class Worker {
     }, {ack: 'client', 'prefetch-count': prefetch});
     logger.info("###################################");
     self.queuesObjects[queueName] = queueObject;
-    logger.debug("Subscribing to " + queueName + " queueObject = " + JSON.stringify(queueObject));
+    logger.debug("Subscribing to " + queueName + " queueObject = " + JSON.stringify(queueObject) + " prefetch = " + prefetch);
   }
 
   unsubscribe(queueName, self) {
@@ -196,11 +227,14 @@ class Worker {
   }
 
   start() {
+    logger.warn("Starting ...");
     let onConnect = () => {
+      logger.warn("Connected ...");
       this.subscribe(this.queueName, this.procMessage, this);
     }
     let onError = (e) => {
       logger.error("ERROR: Error connecting to " + this.wsConnStr + " -> " + e);
+      this.start();
     }
     let mycon = this.client.connect(this.user, this.pswd, onConnect, onError, '/');
   }
