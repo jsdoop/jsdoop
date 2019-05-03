@@ -1,0 +1,167 @@
+<div class = "included_html included_html1" id = "included_html1">
+	<script async="" src="./js/analytics.js"></script><script src="./js/Chart.min.js"></script>
+	<script src="./js/utils.js"></script>
+	<style>
+	.canvas {
+		-moz-user-select: none;
+		-webkit-user-select: none;
+		-ms-user-select: none;
+	}
+
+
+
+
+
+	</style>
+<style type="text/css">/* Chart.js */
+@keyframes chartjs-render-animation{from{opacity:.99}to{opacity:1}}.chartjs-render-monitor{animation:chartjs-render-animation 1ms}.chartjs-size-monitor,.chartjs-size-monitor-expand,.chartjs-size-monitor-shrink{position:absolute;direction:ltr;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1}.chartjs-size-monitor-expand>div{position:absolute;width:1000000px;height:1000000px;left:0;top:0}.chartjs-size-monitor-shrink>div{position:absolute;width:200%;height:200%;left:0;top:0}</style>
+
+
+
+
+	<div class="outside_canvas" style="width:100%;"><div class="chartjs-size-monitor"><div class="chartjs-size-monitor-expand"><div class=""></div></div><div class="chartjs-size-monitor-shrink"><div class=""></div></div></div>
+<canvas class ="canvas" id="canvas_percentage" class="chartjs-render-monitor"></canvas>	
+	</div>
+
+
+
+
+
+
+
+	<script>
+let percentageChart = {};
+
+
+(() => {
+
+
+let maxElementsInChart = 100; //Cuando se pasa del límite se eliminan algunos puntos intermedios.
+let removeEachNth = 30;
+
+percentageChart.update = function (statsSummary) {
+
+  if (!statsSummary || !statsSummary.taskSolvedPerSecond) return;
+
+  let chart = percentageChart.chart;  
+
+  let newDate = new Date(statsSummary.timeStamp);
+  chart.data.labels.push(newDate);
+  
+
+  chart.data.datasets[0].data.push({x: newDate, y: statsSummary.taskSolvedPerSecond });
+  chart.data.datasets[1].data.push({x: newDate, y: statsSummary.nWorkers });
+
+  //Removing 1 label that is created automatically. To get the same number of elements in all arrays.
+  if (chart.data.labels.length > chart.data.datasets[0].data.length) chart.data.labels.shift();
+
+  if (chart.data.labels.length > maxElementsInChart) {
+    for (let i = chart.data.labels.length - 2; i > 0; i--) { //Remove each nth element. Do not remove first and last.
+      (i + 1) % removeEachNth === 0 && chart.data.labels.splice(i, 1) && chart.data.datasets[0].data.splice(i, 1) && chart.data.datasets[1].data.splice(i, 1);
+    }
+  }
+
+  window.tasksPerSecondChart.update();
+}
+
+percentageChart.reset = function () {
+  for (let i = 0; i < percentageChart.chart.data.datasets.length; i++) {
+    percentageChart.chart.data.datasets[i].data = [];
+    percentageChart.chart.data.labels = [];
+  }
+}
+
+
+percentageChart.load = function () {
+
+
+	percentageChart.chart = {
+		type: 'line',
+		data: {
+      labels: [],
+			datasets: [{
+				label: 'Tasks solved per second (left)',
+				backgroundColor: window.chartColors.orange,
+				borderColor: window.chartColors.orange,
+				fill: false,
+        tension: 0,
+				data: [
+
+				],
+        yAxisID: 'y-axis-1',
+			},
+        {
+				  label: 'N connected devices (right)',
+				  backgroundColor: window.chartColors.blue,
+				  borderColor: window.chartColors.blue,
+				  fill: false,
+          tension: 0,
+				  data: [
+
+				  ],
+        	yAxisID: 'y-axis-2',
+			  },
+      ]
+		},
+		options: {
+      cubicInterpolationMode: 'default',
+      bezierCurve: false,
+      lineTension: 0,
+			responsive: true,
+			title: {
+				display: true,
+				text: 'Tasks solved per second using N connected devices.'
+			},
+			scales: {
+          xAxes: [
+            { labelString: "Date", display: false, position: 'top', barPercentage: 1.0, categoryPercentage: 0.5 }
+            //,
+            //{ type: 'time', time: { format: "HH:MM:SS"} }          
+          ] 
+        ,
+				yAxes: [{
+          labelString: "Tasks solved per second",
+					display: true,
+					position: 'left',
+					id: 'y-axis-1',
+          ticks: {
+            beginAtZero: true
+          }          
+					//type: 'logarithmic',
+				}, 
+          {
+            labelString: "N connected devices",
+						type: 'linear', // only linear but allow scale type registration. This allows extensions to exist solely for log scale for instance
+						display: true,
+						position: 'right',
+						id: 'y-axis-2',
+            ticks: {
+              beginAtZero: true,
+              stepSize: 1
+            },
+						// grid line settings
+						gridLines: {
+							drawOnChartArea: false, // only want the grid lines for one axis to show up
+						},
+					}
+
+        ]
+			}
+		}
+	};
+
+	//window.onload = function() {
+  //percentageChart.init = function() {
+		let ctx = document.getElementById('canvas_percentage').getContext('2d');
+		window.tasksPerSecondChart = new Chart(ctx, percentageChart.chart);
+	//};
+}
+
+
+
+})();
+
+
+	</script>
+</div>
+

@@ -9,7 +9,8 @@
     "node": ">=8.9.0"
   },
   "scripts": {
-    "worker": "cross-env NODE_ENV=development parcel worker.html --no-hmr "
+    "worker": "cross-env NODE_ENV=development parcel worker.html --no-hmr ",
+    "worker-nostats": "cross-env NODE_ENV=development parcel worker-nostats.html --no-hmr "
   },
   "devDependencies": {
     "@babel/core": "^7.0.0-0",
@@ -20,10 +21,12 @@
   },
   "dependencies": {
     "@tensorflow/tfjs": "^0.15.3",
+    "jquery": "^3.4.0",
+    "jsd-utils": "link:../../../jsd-utils/",
+    "jsd-worker": "link:../../../jsd-worker/",
+    "popper.js": "^1.15.0",
     "protocol-buffers": "^4.1.0",
     "stomp": "^0.1.1",
-    "tfjs-helper": "link:../tfjs-helper/",
-    "jsd-worker": "link:../../../jsd-worker/",
-    "jsd-utils": "link:../../../jsd-utils/"
+    "tfjs-helper": "link:../tfjs-helper/"
   }
-}    
+}

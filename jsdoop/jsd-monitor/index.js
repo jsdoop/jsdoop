@@ -78,7 +78,7 @@ async function enqueueTask(ch, queueName, numMaps, accumReduce, mapPayloadFn=nul
     if(mapPayloadFn && typeof(mapPayloadFn) == 'function') {
       mapper.payload = mapPayloadFn(i, mapIx, reduceIx);
     }
-    logger.debug(mapper);
+    //logger.debug("enqueuing mapper " + mapper);
     ch.sendToQueue(queueName, new Buffer(JSON.stringify(mapper)), {persistent: true});
     awaitId.push(mapper.procId);
     if( i%accumReduce == 0 || i == numMaps ) {
@@ -91,7 +91,7 @@ async function enqueueTask(ch, queueName, numMaps, accumReduce, mapPayloadFn=nul
       if(reducePayloadFn && typeof(reducePayloadFn) == 'function') {
         reducer.payload = reducePayloadFn(i, mapIx, reduceIx);
       }
-      logger.debug(reducer);
+      //logger.debug("enqueuing reducer " + reducer);
       ch.sendToQueue(queueName, new Buffer(JSON.stringify(reducer)), {persistent: true});
       awaitId.length = 0;
       reduceIx++;
@@ -100,6 +100,46 @@ async function enqueueTask(ch, queueName, numMaps, accumReduce, mapPayloadFn=nul
 }
 
 module.exports.enqueueTask = enqueueTask;
+
+
+/**
+function bail(err) {
+  logger.error(err);
+  //process.exit(1);
+}
+**/
+
+// Consumer
+/**
+function consumer(conn) {
+  let ok = conn.createChannel(on_open);
+  function on_open(err, ch) {
+    if (err != null) bail(err);
+    ch.assertQueue(q);
+    ch.consume(q, function(msg) {
+      if (msg !== null) {
+        console.log(msg.content.toString());
+        ch.ack(msg);
+      }
+    });
+  }
+}
+**/
+async function consumer(ch, queue, callback) {
+    return new Promise((resolve, reject) => {
+      ch.consume(queue, async function(msg) {
+        if (msg !== null) {
+          let ok = await callback(msg.content.toString());
+          if (ok) ch.ack(msg);
+          else ch.nack(msg);
+          resolve();
+        }
+      });
+    });
+}
+module.exports.consumer = consumer;
+
+
 
 
 async function asyncDeleteQueue(q, ch) {

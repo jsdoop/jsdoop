@@ -5,8 +5,18 @@ async function getText(url){
   // read text from URL location
   return new Promise(function(resolve, reject) {
     request.get(url, function(err, res, content) {
-      let jsonBody = JSON.parse(content);
-      resolve(jsonBody.GET);
+      if (content) {
+        try {
+          let jsonBody = JSON.parse(content);
+          resolve(jsonBody.GET);
+        } catch (e) {
+          logger.error(e);
+          resolve("");
+        }
+      } else {
+        resolve("");
+      }
+
 	//resolve(content);
     });	
   });	
