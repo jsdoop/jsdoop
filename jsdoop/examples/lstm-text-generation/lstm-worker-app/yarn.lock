@@ -3484,12 +3484,19 @@ jsbn@~0.1.0:
   integrity sha1-peZUwuWi3rXyAdls77yoDA7y9RM=
 
 "jsd-utils@link:../../../jsd-utils":
-  version "0.0.0"
-  uid ""
+  version "1.0.0"
+  dependencies:
+    text-encoder "^0.0.4"
 
 "jsd-worker@link:../../../jsd-worker":
-  version "0.0.0"
-  uid ""
+  version "1.0.0"
+  dependencies:
+    jsd-utils "link:../../../jsd-utils"
+    sockjs "^0.3.19"
+    sockjs-client "^1.3.0"
+    stomp-websocket "^2.3.4-next"
+    stompjs "^2.3.3"
+    websocket "^1.0.28"
 
 jsesc@^2.5.1:
   version "2.5.2"
@@ -3776,9 +3783,9 @@ minizlib@^1.1.1:
     minipass "^2.2.1"
 
 mixin-deep@^1.2.0:
-  version "1.3.1"
-  resolved "https://registry.yarnpkg.com/mixin-deep/-/mixin-deep-1.3.1.tgz#a49e7268dce1a0d9698e45326c5626df3543d0fe"
-  integrity sha512-8ZItLHeEgaqEvd5lYBXfm4EZSFCX29Jb9K+lAHhDKzReKBQKj3R+7NOF6tjqYi9t4oI8VUfaWITJQm86wnXGNQ==
+  version "1.3.2"
+  resolved "https://registry.yarnpkg.com/mixin-deep/-/mixin-deep-1.3.2.tgz#1120b43dc359a785dce65b55b82e257ccf479566"
+  integrity sha512-WRoDn//mXBiJ1H40rqa3vH0toePwSsGb45iInWlTySa+Uu4k3tYUSxa2v1KqAiLtvlrSzaExqS1gtk96A9zvEA==
   dependencies:
     for-in "^1.0.2"
     is-extendable "^1.0.1"
@@ -5788,8 +5795,11 @@ text-encoder@^0.0.4:
   integrity sha512-12gllbNnC0Zdh9r+LCpEwpUdvncaE9hfUmCVm2ryCH1LEVUZbS6NdRq8omEgJI0zKgaGFTjwQVHbglGDCIbmNA==
 
 "tfjs-helper@link:../tfjs-helper":
-  version "0.0.0"
-  uid ""
+  version "1.0.0"
+  dependencies:
+    "@tensorflow/tfjs" "^0.15.3"
+    jsd-utils "link:../../../jsd-utils"
+    request "^2.88.0"
 
 through2@^2.0.0, through2@~2.0.3:
   version "2.0.5"
