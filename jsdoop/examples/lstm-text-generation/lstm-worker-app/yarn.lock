@@ -814,9 +814,9 @@ abbrev@1:
   integrity sha512-nne9/IiQ/hzIhY6pdDnbBtz7DjPTKrY00P/zvPSm5pOFkl6xuGrGnXn/VtTNNfNtAfZ9/1RtehkszU9qcTii0Q==
 
 acorn@^5.0.0:
-  version "5.7.3"
-  resolved "https://registry.yarnpkg.com/acorn/-/acorn-5.7.3.tgz#67aa231bf8812974b85235a96771eb6bd07ea279"
-  integrity sha512-T/zvzYRfbVojPWahDsE5evJdHb3oJoQfFbsrKM7w5Zcs++Tr257tia3BmMP8XYVjp1S9RZXQMh7gao96BlqZOw==
+  version "5.7.4"
+  resolved "https://registry.yarnpkg.com/acorn/-/acorn-5.7.4.tgz#3e8d8a9947d0599a1796d10225d7432f4a4acf5e"
+  integrity sha512-1D++VG7BhrtvQpNbBzovKNc1FLGGEE/oGe7b9xJm/RFHMBeUaUGpluV9RLjZa47YFdPcDAenEYuq9pQPcMdLJg==
 
 ajv@^6.5.5:
   version "6.9.2"
@@ -3484,12 +3484,19 @@ jsbn@~0.1.0:
   integrity sha1-peZUwuWi3rXyAdls77yoDA7y9RM=
 
 "jsd-utils@link:../../../jsd-utils":
-  version "0.0.0"
-  uid ""
+  version "1.0.0"
+  dependencies:
+    text-encoder "^0.0.4"
 
 "jsd-worker@link:../../../jsd-worker":
-  version "0.0.0"
-  uid ""
+  version "1.0.0"
+  dependencies:
+    jsd-utils "link:../../../jsd-utils"
+    sockjs "^0.3.19"
+    sockjs-client "^1.3.0"
+    stomp-websocket "^2.3.4-next"
+    stompjs "^2.3.3"
+    websocket "^1.0.28"
 
 jsesc@^2.5.1:
   version "2.5.2"
@@ -5788,8 +5795,11 @@ text-encoder@^0.0.4:
   integrity sha512-12gllbNnC0Zdh9r+LCpEwpUdvncaE9hfUmCVm2ryCH1LEVUZbS6NdRq8omEgJI0zKgaGFTjwQVHbglGDCIbmNA==
 
 "tfjs-helper@link:../tfjs-helper":
-  version "0.0.0"
-  uid ""
+  version "1.0.0"
+  dependencies:
+    "@tensorflow/tfjs" "^0.15.3"
+    jsd-utils "link:../../../jsd-utils"
+    request "^2.88.0"
 
 through2@^2.0.0, through2@~2.0.3:
   version "2.0.5"
