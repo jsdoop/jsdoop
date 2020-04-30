@@ -3426,10 +3426,10 @@ isstream@~0.1.2:
   resolved "https://registry.yarnpkg.com/isstream/-/isstream-0.1.2.tgz#47e63f7af55afa6f92e1500e690eb8b8529c099a"
   integrity sha1-R+Y/evVa+m+S4VAOaQ64uFKcCZo=
 
-jquery@^3.4.0:
-  version "3.4.0"
-  resolved "https://registry.yarnpkg.com/jquery/-/jquery-3.4.0.tgz#8de513fa0fa4b2c7d2e48a530e26f0596936efdf"
-  integrity sha512-ggRCXln9zEqv6OqAGXFEcshF5dSBvCkzj6Gm2gzuR5fWawaX8t7cxKVkkygKODrDAzKdoYw3l/e3pm3vlT4IbQ==
+jquery@^3.5.0:
+  version "3.5.0"
+  resolved "https://registry.yarnpkg.com/jquery/-/jquery-3.5.0.tgz#9980b97d9e4194611c36530e7dc46a58d7340fc9"
+  integrity sha512-Xb7SVYMvygPxbFMpTFQiHh1J7HClEaThguL15N/Gg37Lri/qKyhRGZYzHRyLH8Stq3Aow0LsHO2O2ci86fCrNQ==
 
 js-base64@^2.1.9:
   version "2.5.1"
@@ -3484,12 +3484,19 @@ jsbn@~0.1.0:
   integrity sha1-peZUwuWi3rXyAdls77yoDA7y9RM=
 
 "jsd-utils@link:../../../jsd-utils":
-  version "0.0.0"
-  uid ""
+  version "1.0.0"
+  dependencies:
+    text-encoder "^0.0.4"
 
 "jsd-worker@link:../../../jsd-worker":
-  version "0.0.0"
-  uid ""
+  version "1.0.0"
+  dependencies:
+    jsd-utils "link:../../../jsd-utils"
+    sockjs "^0.3.19"
+    sockjs-client "^1.3.0"
+    stomp-websocket "^2.3.4-next"
+    stompjs "^2.3.3"
+    websocket "^1.0.28"
 
 jsesc@^2.5.1:
   version "2.5.2"
@@ -5788,8 +5795,11 @@ text-encoder@^0.0.4:
   integrity sha512-12gllbNnC0Zdh9r+LCpEwpUdvncaE9hfUmCVm2ryCH1LEVUZbS6NdRq8omEgJI0zKgaGFTjwQVHbglGDCIbmNA==
 
 "tfjs-helper@link:../tfjs-helper":
-  version "0.0.0"
-  uid ""
+  version "1.0.0"
+  dependencies:
+    "@tensorflow/tfjs" "^0.15.3"
+    jsd-utils "link:../../../jsd-utils"
+    request "^2.88.0"
 
 through2@^2.0.0, through2@~2.0.3:
   version "2.0.5"
