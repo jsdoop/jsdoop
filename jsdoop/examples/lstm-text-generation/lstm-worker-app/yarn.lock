@@ -3158,9 +3158,9 @@ inherits@2.0.1:
   integrity sha1-sX0I0ya0Qj5Wjv9xn5GwscvfafE=
 
 ini@^1.3.4, ini@~1.3.0:
-  version "1.3.5"
-  resolved "https://registry.yarnpkg.com/ini/-/ini-1.3.5.tgz#eee25f56db1c9ec6085e0c22778083f596abf927"
-  integrity sha512-RZY5huIKCMRWDUqZlEi72f/lmXKMvuszcMBduliQ3nnWbx9X/ZBQO7DijMEYS9EhHBb2qacRUMtC7svLwe0lcw==
+  version "1.3.7"
+  resolved "https://registry.yarnpkg.com/ini/-/ini-1.3.7.tgz#a09363e1911972ea16d7a8851005d84cf09a9a84"
+  integrity sha512-iKpRpXP+CrP2jyrxvg1kMUpXDyRUFDWurxbnVT1vQPx+Wz9uCYsMIqYuSBLV+PAaZG/d7kRLKRFc9oDMsH+mFQ==
 
 invariant@^2.2.2:
   version "2.2.4"
@@ -3484,12 +3484,19 @@ jsbn@~0.1.0:
   integrity sha1-peZUwuWi3rXyAdls77yoDA7y9RM=
 
 "jsd-utils@link:../../../jsd-utils":
-  version "0.0.0"
-  uid ""
+  version "1.0.0"
+  dependencies:
+    text-encoder "^0.0.4"
 
 "jsd-worker@link:../../../jsd-worker":
-  version "0.0.0"
-  uid ""
+  version "1.0.0"
+  dependencies:
+    jsd-utils "link:../../../jsd-utils"
+    sockjs "^0.3.19"
+    sockjs-client "^1.3.0"
+    stomp-websocket "^2.3.4-next"
+    stompjs "^2.3.3"
+    websocket "^1.0.28"
 
 jsesc@^2.5.1:
   version "2.5.2"
@@ -5788,8 +5795,11 @@ text-encoder@^0.0.4:
   integrity sha512-12gllbNnC0Zdh9r+LCpEwpUdvncaE9hfUmCVm2ryCH1LEVUZbS6NdRq8omEgJI0zKgaGFTjwQVHbglGDCIbmNA==
 
 "tfjs-helper@link:../tfjs-helper":
-  version "0.0.0"
-  uid ""
+  version "1.0.0"
+  dependencies:
+    "@tensorflow/tfjs" "^0.15.3"
+    jsd-utils "link:../../../jsd-utils"
+    request "^2.88.0"
 
 through2@^2.0.0, through2@~2.0.3:
   version "2.0.5"
