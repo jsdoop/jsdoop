@@ -13,7 +13,7 @@ This repository is a new version of the JSDoop library. Now the library is divid
 Documentation and more information will be added in a few days.
 
 ## CITATION
-If you find this work useful in your research, please cite:
+If you find this work useful in your research, please cite https://ieeexplore.ieee.org/document/8886576:
 
   @article{morell2019jsdoop,
     title={JSDoop and TensorFlow. js: Volunteer Distributed Web Browser-Based Neural Network Training},
