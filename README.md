@@ -12,6 +12,19 @@ This repository is a new version of the JSDoop library. Now the library is divid
 
 Documentation and more information will be added in a few days.
 
+## CITATION
+If you find this work useful in your research, please cite:
+
+  @article{morell2019jsdoop,
+    title={JSDoop and TensorFlow. js: Volunteer Distributed Web Browser-Based Neural Network Training},
+    author={Morell, Jos{\'e} {\'A} and Camero, Andr{\'e}s and Alba, Enrique},
+    journal={IEEE Access},
+    volume={7},
+    pages={158671--158684},
+    year={2019},
+    publisher={IEEE}
+  }
+
 ## License
 This module is part of the JSDoop package (www.jsdoop.com) (https://github.com/jsdoop/jsdoop).
 Copyright (c) 2019 by José Ángel Morell.
