@@ -1,0 +1,9 @@
+[submodule "jsdoop-py"]
+	path = jsdoop-py
+	url = https://github.com/jamorell/jsdoop-py
+[submodule "jsdoop-stats-server"]
+	path = jsdoop-stats-server
+	url = https://github.com/jamorell/jsdoop-stats-server
+[submodule "jsdoop-server"]
+	path = jsdoop-server
+	url = https://github.com/jamorell/jsdoop-server
