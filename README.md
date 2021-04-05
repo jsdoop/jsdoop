@@ -12,7 +12,7 @@ This repository is a new version of the JSDoop library. Now the library is divid
 
 Documentation and more information will be added in a few days.
 
-## CITATION
+## Citation
 If you find this work useful in your research, please cite https://ieeexplore.ieee.org/document/8886576:
 
   @article{morell2019jsdoop,
