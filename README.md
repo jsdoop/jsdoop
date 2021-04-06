@@ -1,5 +1,5 @@
 # JSDoop
-JSDoop Library - Distributed Object-Oriented Platform on the Browser. Python Version.
+JSDoop Library - Distributed Object-Oriented Platform on the Browser.
 
 Developed by José Ángel Morell. 
 For more information please check this repository https://github.com/jsdoop/jsdoop
