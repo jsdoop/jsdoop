@@ -1,5 +1,7 @@
-# JSDoop
-JSDoop Library - Distributed Object-Oriented Platform on the Browser.
+# JSDoop 2.0
+JSDoop Library 2.0 - Distributed Object-Oriented Platform on the Browser.
+
+JSDoop version 2.0 has been redesigned and reimplemented from scratch.
 
 Developed by José Ángel Morell. 
 For more information please check this repository https://github.com/jsdoop/jsdoop
@@ -13,7 +15,7 @@ This repository is a new version of the JSDoop library. Now the library is divid
 Documentation and more information will be added in a few days.
 
 ## Citation
-If you find this work useful in your research, please cite https://ieeexplore.ieee.org/document/8886576:
+If you find this work useful in your research, please cite the previous version of JSDoop (1.0) until we publish our new paper  https://ieeexplore.ieee.org/document/8886576:
 
   @article{morell2019jsdoop,
     title={JSDoop and TensorFlow. js: Volunteer Distributed Web Browser-Based Neural Network Training},
