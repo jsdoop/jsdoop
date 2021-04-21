@@ -1,7 +1,7 @@
 # JSDoop 2.0
 JSDoop Library 2.0 - Distributed Object-Oriented Platform on the Browser.
 
-JSDoop version 2.0 has been redesigned and reimplemented from scratch.
+JSDoop version 2.0 has been redesigned and reimplemented from scratch. This version allows performing federated learning using volunteer edge devices. 
 
 Developed by José Ángel Morell. 
 For more information please check this repository https://github.com/jsdoop/jsdoop
