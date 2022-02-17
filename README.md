@@ -13,17 +13,17 @@ This repository is a new version of the JSDoop library. Now the library is divid
 - JSDoop-server
 
 ### EXAMPLE OF EXECUTING IN LOCALHOST
-TERMINAL 1
+#### TERMINAL 1
 git clone --recurse-submodules https://github.com/jsdoop/jsdoop.git
 cd jsdoop
 cd jsdoop-stats-server
 docker-compose up
 
-TERMINAL 2
+#### TERMINAL 2
 cd jsdoop-server
 docker-compose up
 
-TERMINAL 3
+#### TERMINAL 3
 python3 -m venv jsdoopenv
 source ./jsdoopenv/bin/activate
 cd jsdoop
@@ -35,7 +35,7 @@ sh init_dataset_mnist.sh
 sh new_job.sh # Copy the ID of the job (last number printed in terminal)
 sh aggregator.sh 1645131584358 # 1645131584358 is the ID of the job
 
-TERMINAL 4
+#### TERMINAL 4
 python3 -m venv jsdoopenv
 source ./jsdoopenv/bin/activate
 cd jsdoop
