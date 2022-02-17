@@ -12,7 +12,58 @@ This repository is a new version of the JSDoop library. Now the library is divid
 - JSDoop-stats-server
 - JSDoop-server
 
-Documentation and more information will be added in a few days.
+### EXAMPLE OF EXECUTING IN LOCALHOST
+TERMINAL 1
+git clone --recurse-submodules https://github.com/jsdoop/jsdoop.git
+cd jsdoop
+cd jsdoop-stats-server
+docker-compose up
+
+TERMINAL 2
+cd jsdoop-server
+docker-compose up
+
+TERMINAL 3
+python3 -m venv jsdoopenv
+source ./jsdoopenv/bin/activate
+cd jsdoop
+cd jdsoop-py
+pip install -r requirements.txt 
+cd scripts
+sh create_topology.sh
+sh init_dataset_mnist.sh
+sh new_job.sh # Copy the ID of the job (last number printed in terminal)
+sh aggregator.sh 1645131584358 # 1645131584358 is the ID of the job
+
+TERMINAL 4
+python3 -m venv jsdoopenv
+source ./jsdoopenv/bin/activate
+cd jsdoop
+cd jdsoop-py
+cd src
+cd constants
+
+- Edit constants.py with your preffer editor (e.g., vi, nano, ...). Choose host and port. For instance: JOB_HOST_REMOTE = "http://localhost" JOB_PORT_REMOTE = 5500
+- Edit jobs.py and use the same values than above. For instance: REMOTEHOST = "http://localhost" REMOTEPORT = 5500 
+cd ..
+cd scripts
+sh worker.sh 1645131584358 theusername 1 # 1 is a seed for reproducibility (you can use any number).
+
+
+Use http://localhost:15672/#/queues for checking the correct performance of the system.
+USER: guest
+PASSWORD: guest
+https://www.rabbitmq.com/documentation.html
+
+Use http://localhost:61112/index.php for analyzing statistics:
+USER: root
+PASSWORD: password
+
+Please if you use this in local be carefull because the worker is much faster than the aggreagtor. You can use a higher number of local steps before aggregating.
+
+
+
+Later I will add how to use a worker from browser.
 
 ## Citation
 If you find this work useful in your research, please cite the previous version of JSDoop (1.0) until we publish our new paper  https://ieeexplore.ieee.org/document/8886576:
