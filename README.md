@@ -59,7 +59,7 @@ This repository is a new version of the JSDoop library. Now the library is divid
 - USER: root
 - PASSWORD: password
 
-Please if you use this in local be careful because the worker is much faster than the aggregator. You can use a higher number of local steps before aggregating.
+Please, be careful when running JSDoop 2.0 locally because the worker is much faster than the aggregator. To work around this, you can increment local steps before aggregation. Also, if you want to run everything on the same machine, I recommend at least 16 GB of RAM or more.
 
 
 
