@@ -20,6 +20,7 @@ This repository is a new version of the JSDoop library. Now the library is divid
 - docker-compose up
 
 #### TERMINAL 2
+- cd jsdoop
 - cd jsdoop-server
 - docker-compose up
 
@@ -36,7 +37,6 @@ This repository is a new version of the JSDoop library. Now the library is divid
 - sh aggregator.sh 1645131584358 # 1645131584358 is the ID of the job
 
 #### TERMINAL 4
-- python3 -m venv jsdoopenv
 - source ./jsdoopenv/bin/activate
 - cd jsdoop
 - cd jdsoop-py
