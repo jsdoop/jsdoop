@@ -50,20 +50,20 @@ This repository is a new version of the JSDoop library. Now the library is divid
 - sh worker.sh 1645131584358 theusername 1 # 1 is a seed for reproducibility (you can use any number).
 
 
-- Use http://localhost:15672/#/queues for checking the correct performance of the system.
+#### Use http://localhost:15672/#/queues for checking the correct performance of the system.
 - USER: guest
 - PASSWORD: guest
 - https://www.rabbitmq.com/documentation.html
 
-- Use http://localhost:61112/index.php for analyzing statistics:
+#### Use http://localhost:61112/index.php for analyzing statistics:
 - USER: root
 - PASSWORD: password
 
-- Please if you use this in local be carefull because the worker is much faster than the aggreagtor. You can use a higher number of local steps before aggregating.
+Please if you use this in local be careful because the worker is much faster than the aggregator. You can use a higher number of local steps before aggregating.
 
 
 
-- Later I will add how to use a worker from browser.
+Later I will add how to use a worker from a browser.
 
 ## Citation
 If you find this work useful in your research, please cite the previous version of JSDoop (1.0) until we publish our new paper  https://ieeexplore.ieee.org/document/8886576:
