@@ -61,6 +61,8 @@ This repository is a new version of the JSDoop library. Now the library is divid
 
 Please, be careful when running JSDoop 2.0 locally because the worker is much faster than the aggregator. To work around this, you can increment local steps before aggregation (edit jsdoop-py/src/constants/jobs.py local_steps = 300 or more). Also, if you want to run everything on the same machine, I recommend at least 16 GB of RAM or more.
 
+You can use an API REST to check that everything is stored correctly. For instance:
+http://localhost:8081/get_job?id_job=1645131584358
 
 
 Later I will add how to use a worker from a browser.
