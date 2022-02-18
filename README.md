@@ -12,7 +12,7 @@ This repository is a new version of the JSDoop library. Now the library is divid
 - JSDoop-stats-server
 - JSDoop-server
 
-### EXAMPLE OF EXECUTING IN LOCALHOST
+### EXAMPLE OF EXECUTION IN LOCALHOST
 #### TERMINAL 1
 - git clone --recurse-submodules https://github.com/jsdoop/jsdoop.git
 - cd jsdoop
