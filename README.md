@@ -53,7 +53,7 @@ This repository is a new version of the JSDoop library. Now the library is divid
 - sh worker.sh 1645131584358 theusername 1 # 1 is a seed for reproducibility (you can use any number).
 
 
-#### Use http://localhost:15672/#/queues for checking the correct performance of the system.
+#### Use http://localhost:15672/#/queues for checking the correct performance of the system (Rabbitmq queue server).
 - USER: guest
 - PASSWORD: guest
 - https://www.rabbitmq.com/documentation.html
