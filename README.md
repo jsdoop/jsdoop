@@ -40,6 +40,8 @@ For more information please check this repository https://github.com/jsdoop/jsdo
 #### Open browser - Each browser is a new worker. It was tested using Google Chrome.
 - http://localhost:1234
 
+- Video JSDoop 1.0: [<img src="https://i.ytimg.com/vi/MPHiLIW4pd4/hqdefault.jpg?sqp=-oaymwEcCPYBEIoBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLBnaDd9LLdA11lymjCxHAovMjw8qA" width="50%">](https://youtu.be/MPHiLIW4pd4)
+
 
 ## Citation
  https://ieeexplore.ieee.org/document/8886576:
