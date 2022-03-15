@@ -6,11 +6,13 @@ cd ..
 cd jsd-monitor
 rm -r node_modules
 yarn unlink "jsd-utils"
+yarn unlink
 cd ..
 
 cd jsd-worker
 rm -r node_modules
 yarn unlink "jsd-utils"
+yarn unlink
 cd ..
 
 cd jsd-utils
@@ -27,7 +29,13 @@ cd ..
 cd examples/lstm-text-generation/tfjs-helper
 rm -r node_modules
 yarn unlink "jsd-utils"
+yarn unlink
 
+cd ..
+
+cd data-server
+rm -r node_modules
+yarn unlink
 cd ..
 
 cd lstm-monitor-app
@@ -35,6 +43,7 @@ rm -r node_modules
 yarn unlink "jsd-utils"
 yarn unlink "jsd-monitor"
 yarn unlink "tfjs-helper"
+yarn unlink
 cd ..
 
 cd lstm-worker-app
@@ -42,6 +51,7 @@ rm -r node_modules
 yarn unlink "jsd-utils"
 yarn unlink "jsd-worker"
 yarn unlink "tfjs-helper"
+yarn unlink
 cd ../../..
 
 
@@ -76,7 +86,11 @@ cd examples/lstm-text-generation/tfjs-helper
 yarn
 yarn link
 yarn link "jsd-utils"
+cd ..
 
+
+cd data-server
+yarn
 cd ..
 
 cd lstm-monitor-app

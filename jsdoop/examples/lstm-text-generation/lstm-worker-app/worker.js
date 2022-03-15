@@ -168,7 +168,8 @@ class TensorFlowData {
   const sampleLen = 40; // 1024;
   const sampleStep = 3; // 256;
   const textUrl = 'http://' + serverUrl + ':' + webdisPort + '/GET/' + taskName + '_text';
-  let textString = await JSDDB.getText(textUrl);  
+  //const textUrl = 'http://mallba3.lcc.uma.es/jamorell/deeplearning/dataset/el_quijote.txt'
+  let textString = await JSDDB.getString(textUrl);  
   dataset = new data.TextDataset(textString, sampleLen, sampleStep, false);
   logger.debug("waiting tasks ...");
   let problemData = new TensorFlowData();

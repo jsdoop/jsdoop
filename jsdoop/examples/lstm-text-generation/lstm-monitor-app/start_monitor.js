@@ -15,6 +15,31 @@ const JSDDB = require('jsd-utils/jsd-db');
 const fs = require("fs");
 
 
+const request = require('request');
+async function getText(url){
+  // read text from URL location
+  console.log(url)
+  return new Promise(function(resolve, reject) {
+    request.get(url, function(err, res, content) {
+      if (content) {
+        console.log(content)
+        try {
+          let jsonBody = JSON.parse(content);
+          resolve(jsonBody.GET);
+        } catch (e) {
+          logger.error(e);
+          resolve("");
+        }
+      } else {
+        console.log("error")
+        resolve("");
+      }
+
+	//resolve(content);
+    });	
+  });	
+}
+
 
 /*********************************************************************************************************************/
 /* Parámetros de conexión
@@ -61,14 +86,23 @@ let accumReduce; //GLOBAL (stats)
   const batchSize = 8;
   const sampleLen = 40; //32; // 1024
   const sampleStep = 3; //8; // 256
-  // const textUrl = 'http://mallba3.lcc.uma.es/jamorell/deeplearning/dataset/el_quijote.txt'
+  //const textUrl = 'http://mallba3.lcc.uma.es/jamorell/deeplearning/dataset/el_quijote.txt'
   const textUrl = modelUrl + '/GET/' + taskName + '_text';
   const lstmLayerSizes = [50,50];
 
 
-  const textString = await JSDDB.getText(textUrl);  
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+  console.log(textUrl)
+  const textString = await JSDDB.getString(textUrl).catch((err)=>{console.log(err)});  
+
   const dataset = new data.TextDataset(textString, sampleLen, sampleStep, false);
- 
+  console.log(dataset)
+
   
   // Generación del payload específico para los mappers
   mapPayloadFn = function(ix, mapIx, reduceIx) {

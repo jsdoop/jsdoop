@@ -29,6 +29,7 @@ class Worker {
     this.client.heartbeat.incoming = 5000;//0;
     this.client.reconnect_delay = 3000;
 
+
     this.queuesObjects = {};
 
     this.totalMsgs = 0;
