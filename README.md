@@ -45,6 +45,10 @@ For more information please check this repository https://github.com/jsdoop/jsdo
 - PASSWORD: guest
 - https://www.rabbitmq.com/documentation.html
 
+#### Terminal 4 (OPTIONAL)- You can also run workers using nodejs
+- cd jsdoop/examples/lstm-text-generation/lstm-worker-app
+- node worker.js
+
 #### Video JSDoop 1.0
 - [<img src="https://i.ytimg.com/vi/MPHiLIW4pd4/hqdefault.jpg?sqp=-oaymwEcCPYBEIoBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLBnaDd9LLdA11lymjCxHAovMjw8qA" width="50%">](https://youtu.be/MPHiLIW4pd4)
 
