@@ -13,7 +13,7 @@ This repository is a new version of the JSDoop library. Now the library is divid
 - JSDoop-server
 
 ### EXAMPLE OF EXECUTION JSDoop 1.0 (deprecated) ON LOCALHOST
-<a href="https://github.com/jsdoop/jsdoop/tree/1.0-(old-version)" target="_blank">JSDoop 1.0 documentation.</a>
+<a href="https://github.com/jsdoop/jsdoop/tree/1.0-(old-version)" target="_blank">JSDoop 1.0 (Map-Reduce) (deprecated version) documentation.</a>
 
 
 ### EXAMPLE OF EXECUTION JSDoop 2.0 ON LOCALHOST
