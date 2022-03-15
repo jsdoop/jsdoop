@@ -75,17 +75,17 @@ http://localhost:8081/get_job?id_job=1645131584358
 Later I will add how to use a worker from a browser.
 
 ## Citation
-If you find this work useful in your research, please cite the previous version of JSDoop (1.0) until we publish our new paper  https://ieeexplore.ieee.org/document/8886576:
+If you find this work useful in your research, please cite:
 
-  @article{morell2019jsdoop,
-    title={JSDoop and TensorFlow. js: Volunteer Distributed Web Browser-Based Neural Network Training},
-    author={Morell, Jos{\'e} {\'A} and Camero, Andr{\'e}s and Alba, Enrique},
-    journal={IEEE Access},
-    volume={7},
-    pages={158671--158684},
-    year={2019},
-    publisher={IEEE}
-  }
+https://www.sciencedirect.com/science/article/pii/S0167739X22000735
+
+@article{morell2022dynamic,
+  title={Dynamic and adaptive fault-tolerant asynchronous federated learning using volunteer edge devices},
+  author={Morell, Jos{\'e} {\'A}ngel and Alba, Enrique},
+  journal={Future Generation Computer Systems},
+  year={2022},
+  publisher={Elsevier}
+}
 
 ## License
 This module is part of the JSDoop package (www.jsdoop.com) (https://github.com/jsdoop/jsdoop).
