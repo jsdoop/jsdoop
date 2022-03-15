@@ -42,7 +42,7 @@ For more information please check this repository https://github.com/jsdoop/jsdo
 
 
 ## Citation
-If you find this work useful in your research, please cite the previous version of JSDoop (1.0) until we publish our new paper  https://ieeexplore.ieee.org/document/8886576:
+ https://ieeexplore.ieee.org/document/8886576:
 
   @article{morell2019jsdoop,
     title={JSDoop and TensorFlow. js: Volunteer Distributed Web Browser-Based Neural Network Training},
