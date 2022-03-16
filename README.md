@@ -59,7 +59,7 @@ This repository is a new version of the JSDoop library. Now the library is divid
 - PASSWORD: guest
 - https://www.rabbitmq.com/documentation.html
 
-#### Use http://localhost:61112/index.php for analyzing statistics (PHPMyAdmin):
+#### Use http://localhost:61112/index.php for analyzing statistics (PHPMyAdmin - MySQL database):
 - USER: root
 - PASSWORD: password
 
