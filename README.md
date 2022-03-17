@@ -18,6 +18,9 @@ This repository is a new version of the JSDoop library. Now the library is divid
 - [<img src="https://i.ytimg.com/vi/MPHiLIW4pd4/hqdefault.jpg?sqp=-oaymwEcCPYBEIoBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLBnaDd9LLdA11lymjCxHAovMjw8qA" width="50%">](https://youtu.be/MPHiLIW4pd4)
 
 ### EXAMPLE OF EXECUTION JSDoop 2.0 ON LOCALHOST
+#### Video JSDoop 2.0
+- [<img src="https://i9.ytimg.com/vi_webp/KXQgsfjeWpE/mqdefault.webp?v=6233afcb&sqp=CIzhzpEG&rs=AOn4CLCceLeEPgxJWQUjzLoVfDYLP26l6g" width="50%">](https://youtu.be/KXQgsfjeWpE)
+- 
 #### STEP 1 - Clone JSDoop 2.0
 - git clone --recurse-submodules https://github.com/jsdoop/jsdoop.git
 
