@@ -32,13 +32,14 @@ This repository is a new version of the JSDoop library. Now the library is divid
 #### TERMINAL 3
 - python3 -m venv jsdoopenv
 - source ./jsdoopenv/bin/activate
-- pip install -r requirements.txt 
 - cd jsdoop
 - cd jdsoop-py
+- pip install -r requirements.txt 
 - cd src
 - cd constants
-- Edit constants.py with your favourite editor (e.g., vi, nano, ...). Choose host and port. For instance: JOB_HOST_REMOTE = "http://localhost" JOB_PORT_REMOTE = 5500
+- Edit constants.py with your favourite editor (e.g., vi, nano, ...). Choose host and port. For instance: JOB_HOST_REMOTE = "http://localhost" JOB_PORT_REMOTE = 8081
 - Edit jobs.py and use the same values than above. For instance: REMOTEHOST = "http://localhost" REMOTEPORT = 5500 
+- cd ..
 - cd ..
 - cd scripts
 - sh create_topology.sh
