@@ -40,6 +40,7 @@ This repository is a new version of the JSDoop library. Now the library is divid
 - Edit constants.py with your favourite editor (e.g., vi, nano, ...). Choose host and port. For instance: JOB_HOST_REMOTE = "http://localhost" JOB_PORT_REMOTE = 5500
 - Edit jobs.py and use the same values than above. For instance: REMOTEHOST = "http://localhost" REMOTEPORT = 5500 
 - cd ..
+- cd ..
 - cd scripts
 - sh create_topology.sh
 - sh init_dataset_mnist.sh
