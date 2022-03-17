@@ -18,27 +18,46 @@ This repository is a new version of the JSDoop library. Now the library is divid
 - [<img src="https://i.ytimg.com/vi/MPHiLIW4pd4/hqdefault.jpg?sqp=-oaymwEcCPYBEIoBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLBnaDd9LLdA11lymjCxHAovMjw8qA" width="50%">](https://youtu.be/MPHiLIW4pd4)
 
 ### EXAMPLE OF EXECUTION JSDoop 2.0 ON LOCALHOST
-#### TERMINAL 1
+#### STEP 1 - Clone JSDoop 2.0
 - git clone --recurse-submodules https://github.com/jsdoop/jsdoop.git
-- cd jsdoop/jsdoop-stats-server
-- docker-compose up
 
-#### TERMINAL 2
-- cd jsdoop/jsdoop-server
-- docker-compose up
-
-#### TERMINAL 3
+#### STEP 2 - Python environment
 - python3 -m venv jsdoopenv
 - source ./jsdoopenv/bin/activate
 - cd jsdoop/jdsoop-py
 - pip install -r requirements.txt 
+
+#### STEP 3 - Stats Server, rabbitmq, and Redis 
+- cd jsdoop/jsdoop-stats-server
+- docker-compose up
+
+#### STEP 4 - Logical Server
+- cd jsdoop/jsdoop-server
+- docker-compose up
+
+#### STEP 5 - Store NN topology
+- source ./jsdoopenv/bin/activate
 - cd jsdoop/jdsoop-py/scripts
 - sh create_topology.sh
+
+#### STEP 6 - Store Dataset
+- source ./jsdoopenv/bin/activate
+- cd jsdoop/jdsoop-py/scripts
 - sh init_dataset_mnist.sh
+
+#### STEP 7 - Create new job
+- Modify /src/constants/jobs.json if you need it
+- source ./jsdoopenv/bin/activate
+- cd jsdoop/jdsoop-py/scripts
 - sh new_job.sh # Copy the ID of the job (last number printed in terminal)
+
+#### STEP 8 - Aggregator
+- source ./jsdoopenv/bin/activate
+- cd jsdoop/jdsoop-py/scripts
 - sh aggregator.sh 1647541122249 # 1647541122249 is the ID of the job
 
-#### TERMINAL 4
+#### STEP 9 - Tester
+- source ./jsdoopenv/bin/activate
 - cd jsdoop/jsdoop-py/scripts
 - sh tester.sh 1647541122249
 
@@ -48,9 +67,7 @@ This repository is a new version of the JSDoop library. Now the library is divid
 
 #### TERMINAL 5 (OPTIONAL)
 - source ./jsdoopenv/bin/activate
-- cd jsdoop
-- cd jdsoop-py
-- cd scripts
+- cd jsdoop/jdsoop-py/scripts
 - sh worker.sh 1647541122249 theusername 1 # 1 is a seed for reproducibility (you can use any number).
 
 
