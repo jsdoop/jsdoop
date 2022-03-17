@@ -6,10 +6,10 @@ For more information please check this repository https://github.com/jsdoop/jsdo
 
 
 ### EXAMPLE OF EXECUTION JSDoop 1.0 on localhost
-#### Deploy rabbitmq server on Docker
+#### Deploy RabbitMQ server on Docker
 - docker run -d --hostname my-rabbit --name some-rabbit -p 15672:15672 -p 5672:5672 -p 5673:5673 -p 15674:15674 rabbitmq:3
 
-#### Enable plugins on rabbitmq server
+#### Enable plugins on RabbitMQ server
 - docker exec -it some-rabbit //bin//bash
 - rabbitmq-plugins enable rabbitmq_management
 - rabbitmq-plugins enable rabbitmq_stomp
@@ -18,6 +18,9 @@ For more information please check this repository https://github.com/jsdoop/jsdo
 - rabbitmqctl stop_app
 - rabbitmqctl reset    # Be sure you really want to do this! It removes all saved data on rabbitmq server
 - rabbitmqctl start_app
+
+#### Deploy Redis server on Docker
+- docker run --name some-redis -p 6379:6379 -d redis redis-server --appendonly yes
 
 #### Clone JSDoop 1.0
 - git clone --branch "1.0-(old-version)" https://github.com/jsdoop/jsdoop.git
