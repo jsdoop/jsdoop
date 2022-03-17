@@ -14,7 +14,7 @@ For more information please check this repository https://github.com/jsdoop/jsdo
 - rabbitmq-plugins enable rabbitmq_management
 - rabbitmq-plugins enable rabbitmq_stomp
 - rabbitmq-plugins enable rabbitmq_web_stomp
-- rabbitmq-plugins enable rabbitmq_web_stomp # Optional
+- rabbitmq-plugins enable rabbitmq_web_stomp_examples # Optional
 - rabbitmqctl stop_app
 - rabbitmqctl reset    # Be sure you really want to do this! It removes all saved data on rabbitmq server
 - rabbitmqctl start_app
