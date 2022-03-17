@@ -20,33 +20,38 @@ This repository is a new version of the JSDoop library. Now the library is divid
 ### EXAMPLE OF EXECUTION JSDoop 2.0 ON LOCALHOST
 #### TERMINAL 1
 - git clone --recurse-submodules https://github.com/jsdoop/jsdoop.git
-- cd jsdoop
-- cd jsdoop-stats-server
+- cd jsdoop/jsdoop-stats-server
 - docker-compose up
 
 #### TERMINAL 2
-- cd jsdoop
-- cd jsdoop-server
+- cd jsdoop/jsdoop-server
 - docker-compose up
 
 #### TERMINAL 3
 - python3 -m venv jsdoopenv
 - source ./jsdoopenv/bin/activate
-- cd jsdoop
-- cd jdsoop-py
+- cd jsdoop/jdsoop-py
 - pip install -r requirements.txt 
-- cd scripts
+- cd jsdoop/jdsoop-py/scripts
 - sh create_topology.sh
 - sh init_dataset_mnist.sh
 - sh new_job.sh # Copy the ID of the job (last number printed in terminal)
-- sh aggregator.sh 1645131584358 # 1645131584358 is the ID of the job
+- sh aggregator.sh 1647541122249 # 1647541122249 is the ID of the job
 
 #### TERMINAL 4
+- cd jsdoop/jsdoop-py/scripts
+- sh tester.sh 1647541122249
+
+#### Open browser - Each browser is a new worker. It was tested using Google Chrome.
+- http://localhost:8081/jsdoop/index.html # Put your username and job ID (1647541122249 in this case).
+- Enjoy playing space invaders on the web browser while collaborating :)
+
+#### TERMINAL 5 (OPTIONAL)
 - source ./jsdoopenv/bin/activate
 - cd jsdoop
 - cd jdsoop-py
 - cd scripts
-- sh worker.sh 1645131584358 theusername 1 # 1 is a seed for reproducibility (you can use any number).
+- sh worker.sh 1647541122249 theusername 1 # 1 is a seed for reproducibility (you can use any number).
 
 
 #### Use http://localhost:15672/#/queues for checking the correct performance of the system (Rabbitmq queue server).
