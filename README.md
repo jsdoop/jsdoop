@@ -61,11 +61,11 @@ This repository is a new version of the JSDoop library. Now the library is divid
 - cd jsdoop/jsdoop-py/scripts
 - sh tester.sh 1647541122249
 
-#### Open browser - Each browser is a new worker. It was tested using Google Chrome.
+#### STEP 10_A - (OPTIONAL) Run worker from Open browser. Run as many workers as you want. Each browser is a new worker. It was tested using Google Chrome.
 - http://localhost:8081/jsdoop/index.html # Put your username and job ID (1647541122249 in this case).
 - Enjoy playing space invaders on the web browser while collaborating :)
 
-#### TERMINAL 5 (OPTIONAL)
+#### STEP 10_B - (OPTIONAL) Run worker using Python. Run as many workers as you want.
 - source ./jsdoopenv/bin/activate
 - cd jsdoop/jdsoop-py/scripts
 - sh worker.sh 1647541122249 theusername 1 # 1 is a seed for reproducibility (you can use any number).
