@@ -30,7 +30,7 @@ This repository is a new version of the JSDoop library. Now the library is divid
 - cd jsdoop/jdsoop-py
 - pip install -r requirements.txt 
 
-#### STEP 3 - Stats Server, rabbitmq, and Redis 
+#### STEP 3 - Stats Server, mysql, rabbitmq, and Redis 
 - cd jsdoop/jsdoop-stats-server
 - docker-compose up
 
