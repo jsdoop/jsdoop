@@ -84,7 +84,7 @@ This repository is a new version of the JSDoop library. Now the library is divid
 - PASSWORD: password
 
 
-Don't forget that we use REDIS to store intermediate results. Intermediate results are deleted during execution. However, when you finish working with a job, you need to delete these intermediate results to clear your RAM. To do this, you need to run: "sh delete_job.sh 1645131584358" where 1645131584358 is the job ID.
+Don't forget that we use REDIS to store intermediate results. Intermediate results are deleted during execution. However, when you finish working with a job, you need to delete these intermediate results to clear your RAM. To do this, you need to run: "sh delete_job.sh 1647541122249" where 1647541122249 is the job ID.
 
 Please, be careful when running JSDoop 2.0 locally because when you use many workers they can be much faster than the aggregator (i.e. all calculations are stored and executed in the RAM memory). To work around this, you can increment local steps before aggregation (edit jsdoop-py/src/constants/jobs.py local_steps = 300 or more). Also, if you want to run everything on the same machine, I recommend at least 16 GB of RAM or more.
 
