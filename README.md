@@ -12,7 +12,7 @@ This repository is a new version of the JSDoop library. Now the library is divid
 - JSDoop-stats-server
 - JSDoop-server
 
-### EXAMPLE OF EXECUTION JSDoop 1.0 (deprecated) ON LOCALHOST
+### EXAMPLE OF EXECUTION JSDoop 1.0 ON LOCALHOST
 - <a href="https://github.com/jsdoop/jsdoop/tree/1.0-(old-version)" target="_blank">JSDoop 1.0 (Map-Reduce) (deprecated version) documentation.</a>
 #### Video JSDoop 1.0
 - [<img src="https://i.ytimg.com/vi/MPHiLIW4pd4/hqdefault.jpg?sqp=-oaymwEcCPYBEIoBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLBnaDd9LLdA11lymjCxHAovMjw8qA" width="50%">](https://youtu.be/MPHiLIW4pd4)
