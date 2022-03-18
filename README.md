@@ -89,10 +89,12 @@ Don't forget that we use REDIS to store intermediate results. Intermediate resul
 Please, be careful when running JSDoop 2.0 locally because when you use many workers they can be much faster than the aggregator (i.e. all calculations are stored and executed in the RAM memory). To work around this, you can increment local steps before aggregation (edit jsdoop-py/src/constants/jobs.py local_steps = 300 or more). Also, if you want to run everything on the same machine, I recommend at least 16 GB of RAM or more.
 
 You can use an API REST to check that everything is stored correctly. For instance:
-http://localhost:8081/get_job?id_job=1645131584358
+- http://localhost:8081/get_job?id_job=1645131584358
+
+You can check if the model topology was correctly stored and converted to JSON:
+- http://localhost:8081/files/topology/mnist_conv_28_28_1/model.json
 
 
-Later I will add how to use a worker from a browser.
 
 ## Citation
 If you find this work useful in your research, please cite:
