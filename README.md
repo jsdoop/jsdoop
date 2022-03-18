@@ -1,4 +1,4 @@
-# JSDoop 1.0 (Map-Reduce) (deprecated version)
+# JSDoop 1.0 (Map-Reduce version)
 JSDoop Library 1.0 (Map-Reduce) - Distributed Object-Oriented Platform on the Browser.
 
 Developed by José Ángel Morell and Andrés Caméro.
