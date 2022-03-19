@@ -99,7 +99,7 @@ You can check if the model topology was correctly stored and converted to JSON:
 ## Citation
 If you find this work useful in your research, please cite:
 
-https://www.sciencedirect.com/science/article/pii/S0167739X22000735
+https://doi.org/10.1016/j.future.2022.02.024
 
 @article{morell2022dynamic,
   title={Dynamic and adaptive fault-tolerant asynchronous federated learning using volunteer edge devices},
