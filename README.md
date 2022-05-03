@@ -40,23 +40,23 @@ This repository is a new version of the JSDoop library. Now the library is divid
 
 #### STEP 5 - Store NN topology
 - source ./jsdoopenv/bin/activate
-- cd jsdoop/jdsoop-py/scripts
+- cd jsdoop/jsdoop-py/scripts
 - sh create_topology.sh
 
 #### STEP 6 - Store Dataset
 - source ./jsdoopenv/bin/activate
-- cd jsdoop/jdsoop-py/scripts
+- cd jsdoop/jsdoop-py/scripts
 - sh init_dataset_mnist.sh
 
 #### STEP 7 - Create new job
 - Modify /src/constants/jobs.json if you need it
 - source ./jsdoopenv/bin/activate
-- cd jsdoop/jdsoop-py/scripts
+- cd jsdoop/jsdoop-py/scripts
 - sh new_job.sh # Copy the ID of the job (last number printed in terminal)
 
 #### STEP 8 - Aggregator
 - source ./jsdoopenv/bin/activate
-- cd jsdoop/jdsoop-py/scripts
+- cd jsdoop/jsdoop-py/scripts
 - sh aggregator.sh 1647541122249 # 1647541122249 is the ID of the job
 
 #### STEP 9 - Tester
@@ -70,7 +70,7 @@ This repository is a new version of the JSDoop library. Now the library is divid
 
 #### STEP 10_B - (OPTIONAL) Run workers using Python. Each process is a new worker (use a different username).
 - source ./jsdoopenv/bin/activate
-- cd jsdoop/jdsoop-py/scripts
+- cd jsdoop/jsdoop-py/scripts
 - sh worker.sh 1647541122249 theusername 1 # 1 is a seed for reproducibility (you can use any number).
 
 
