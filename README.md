@@ -108,7 +108,7 @@ Also, before you run the aggregator and the tester, you must edit jsdoop-py/src/
 Finally, when you run a worker from a remote machine, you must add "true" to the end of the script. For example:
 - sh worker.sh 1647541122249 theusername 1 true
 
-Depending on how many gradients you want to accumulate, you must modify the variable "min_grads_to_accumulate = 2", where 2 is the number of gradients you want to accumulate. If you use adaptive aggregation, you should modify the "adaptive_aggregation = True" variable. In this case, the number of gradients to accumulate is calculated automatically during the execution. Both variables are in jsdoop-py/src/constants/jobs.py.
+Depending on how many gradients you want to accumulate, you must modify the variable "gradients_to_accumulate = 2", where 2 is the number of gradients you want to accumulate. If you use adaptive aggregation, you should modify the "adaptive_aggregation = True" variable. In this case, the number of gradients to accumulate is calculated automatically during the execution. Both variables are in jsdoop-py/src/constants/jobs.py.
 
 
 ## Citation
