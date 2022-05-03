@@ -95,6 +95,21 @@ You can check if the model topology was correctly stored and converted to JSON:
 - http://localhost:8081/files/topology/mnist_conv_28_28_1/model.json
 
 
+### EXAMPLE OF EXECUTION JSDoop 2.0 ON REMOTE
+If the workers are on different devices from where you run the server, then you must edit the IP and port variables so that workers know where to connect. If you use the Internet, make sure the ports are open.
+You must edit jsdoop-py/src/constants/jobs.py:
+- REMOTEHOST = "192.168.1.20" // IP where the server is running
+- REMOTEPORT = 8081
+
+Also, before you run the aggregator and the tester, you must edit jsdoop-py/src/constants/constants.py:
+- JOB_HOST_REMOTE = "http://192.168.1.20" //IP where the server is running
+- JOB_PORT_REMOTE = 8081
+
+Finally, when you run a worker from a remote machine, you must add "true" to the end of the script. For example:
+- sh worker.sh 1647541122249 theusername 1 true
+
+Depending on how many gradients you want to accumulate, you must modify the variable "min_grads_to_accumulate = 2", where 2 is the number of gradients you want to accumulate. If you use adaptive aggregation, you should modify the "adaptive_aggregation = True" variable. In this case, the number of gradients to accumulate is calculated automatically during the execution. Both variables are in jsdoop-py/src/constants/jobs.py.
+
 
 ## Citation
 If you find this work useful in your research, please cite:
