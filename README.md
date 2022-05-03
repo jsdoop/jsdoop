@@ -27,7 +27,7 @@ This repository is a new version of the JSDoop library. Now the library is divid
 #### STEP 2 - Python environment
 - python3 -m venv jsdoopenv
 - source ./jsdoopenv/bin/activate
-- cd jsdoop/jdsoop-py
+- cd jsdoop/jsdoop-py
 - pip install -r requirements.txt 
 
 #### STEP 3 - Stats Server, mysql, rabbitmq, and Redis 
