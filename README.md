@@ -71,7 +71,7 @@ This repository is a new version of the JSDoop library. Now the library is divid
 #### STEP 10_B - (OPTIONAL) Run workers using Python. Each process is a new worker (use a different username).
 - source ./jsdoopenv/bin/activate
 - cd jsdoop/jsdoop-py/scripts
-- sh worker.sh 1647541122249 theusername 1 # 1 is a seed for reproducibility (you can use any number).
+- sh worker.sh 1647541122249 theusername 1 # 1 is a seed for reproducibility (you can use any number). The seed is used to select the local dataset. Therefore, each worker must have a different seed.
 
 
 #### Use http://localhost:15672/#/queues for checking the correct performance of the system (Rabbitmq queue server).
