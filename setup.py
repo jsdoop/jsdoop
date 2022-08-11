@@ -13,7 +13,7 @@ setup(
     description = 'Distributed Object-Oriented Platform on the Browser. Python Version.',
     long_description = readme,
     author = 'José Ángel Morell',
-    author_email = 'jamorell386@gmail.com',
+    author_email = '',
     url = 'https://github.com/jsdoop/jsdoop',
     license = license,
     packages = find_packages(exclude = ('tests', 'docs'))
