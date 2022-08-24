@@ -110,6 +110,9 @@ Finally, when you run a worker from a remote machine, you must add "true" to the
 
 Depending on how many gradients you want to accumulate, you must modify the variable "gradients_to_accumulate = 2", where 2 is the number of gradients you want to accumulate. If you use adaptive aggregation, you should modify the "adaptive_aggregation = True" variable. In this case, the number of gradients to accumulate is calculated automatically during the execution. Both variables are in jsdoop-py/src/constants/jobs.py.
 
+When using adaptive aggregation, you also have to configure the MAX_TIME_TO_DISCONNECT_WORKER variable depending on how much you estimate a worker has to expend solving a task.
+- jsdoop-server/src/main/java/com/jsdoop/server/constants/Constants.java
+- public static long MAX_TIME_TO_DISCONNECT_WORKER =  5000; 
 
 ## Citation
 If you find this work useful in your research, please cite:
